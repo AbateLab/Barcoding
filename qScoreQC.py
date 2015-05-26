@@ -6,6 +6,7 @@ matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
+
 ### Global Default Values ###
 inf = None
 out = None
@@ -31,6 +32,10 @@ def main():
         args = args[3:]
         while args:
             opt = args.pop(0)
+            if len(args) == 0:
+                print "missing argument after " + opt
+                help()
+                return
             if opt == '-f':
                 folder = args.pop(0)
             elif opt == '-bq':
