@@ -68,7 +68,7 @@ def main():
         help()
         return
     else:
-        print "nonsensical argument: " + opt
+        print "nonsensical arguments"
         help()
         return
 
