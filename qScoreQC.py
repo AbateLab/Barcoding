@@ -89,7 +89,7 @@ def help():
     \t\t\033[1mFiltering\033[0m separates out all reads with a Qscore lower than rcut, to out\n\
     \t\t(defaults to filter_{rcut}), maintaining order, with discarded sequences in\n\
     \t\tout.cut,and creates a read Qscore ofhistogram.\n\
-    \033[1mEvaluation Usage\033[0m\tqScoreQC.pc --e input.fastq [-f folder][-bq bcut][-bc baseCutCompensation][-nbg][nrg]\n\
+    \033[1mEvaluation Usage\033[0m\tqScoreQC.py --e input.fastq [-f folder][-bq bcut][-bc baseCutCompensation][-nbg][nrg]\n\
     \t-f\tspecify folder evalq outputs logs to; will create folder if nonexistant\n\
     \t-bq\tspecify Qscore threshold above which individual base is replaced by 'N'\n\
     \t-bc\tspecify amount added to total read Qscore from 'N'\n\
