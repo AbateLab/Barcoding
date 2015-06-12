@@ -1,5 +1,5 @@
 # BarcodingQC
-Tools for evaluating quality of barcoding runs, and filtering out low quality data.
+Tools for evaluating quality, and filtering barcoding data.
 Running any program with no parameters, or "--h" will display a general guide to its use.
 
 qScoreQC.py:
