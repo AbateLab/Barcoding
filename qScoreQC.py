@@ -1,6 +1,7 @@
 import sys
 import os
 import math
+import argparse
 import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
@@ -12,6 +13,7 @@ inf = None
 out = None
 folder = None
 rcut = .001
+ncut = 3
 rGraph = True
 bcut = .99
 bcutcomp = .05
@@ -26,8 +28,11 @@ def main():
     global rGraph
     global bcut
     global bcutcomp
+    global ncut
     global bGraph
-    if args[1] == '--e':
+    if len(args) == 1:
+        help()
+    elif args[1] == '--e':
         inf = args[2]
         args = args[3:]
         while args:
@@ -42,6 +47,8 @@ def main():
                 bcut = float(args.pop(0))
             elif opt == '-bc':
                 bcutcomp = float(args.pop(0))
+            elif opt == '-nc':
+                ncut = int(args.pop(0))
             elif opt == '-nb':
                 bGraph = False
             elif opt == '-nr':
@@ -62,6 +69,8 @@ def main():
                 out = args.pop(0)
             elif opt == '-rc':
                 rcut = float(args.pop(0))
+            elif opt == '-nc':
+                ncut = int(args.pop(0))
             else:
                 print "nonsensical argument: " + opt
                 help()
@@ -71,11 +80,9 @@ def main():
         filterq()
     elif args[1] == '-h' or args[1] == '--h':
         help()
-        return
     else:
         print "nonsensical arguments"
         help()
-        return
 
 def help():
     print "filter fastq files by their phred q-scores\n\
@@ -120,19 +127,25 @@ def evalq():
             qscore = infile.next()
             if len(seq.rstrip('\n')) != len(qscore.rstrip('\n')):
                 return "sequence and qscore sequence different lengths: " + label
+            n_in_row = 0
             for i in range(len(qscore)-1):
-                score = asc2p(qscore[i])
-                if score > bcut:
-                    seq = list(seq)
-                    seq[i] = 'N'
-                    if bGraph: 
-                        while len(ndist) <= i:
-                            ndist.append(0)
-                        ndist[i] += 1.0
-                    seq = "".join(seq)
-                    q += bcutcomp
-                else:
-                    q += score
+                if n_in_row < ncut:
+                    score = asc2p(qscore[i])                    
+                    if score > bcut:
+                        if seq[i-1] == 'N':
+                            n_in_row += 1
+                        else:
+                            n_in_row = 0
+                        seq = list(seq)
+                        seq[i] = 'N'
+                        if bGraph: 
+                            while len(ndist) <= i:
+                                ndist.append(0)
+                            ndist[i] += 1.0
+                        seq = "".join(seq)
+                        q += bcutcomp
+                    else:
+                        q += score
             log.write(str(q) + "\n")
             if rGraph: 
                 qvals.append(q)
@@ -177,14 +190,25 @@ def filterq():
         for line in log:
             if float(line) < rcut:
                 good.write(infile.next())
+                seq = infile.next()
+                x = cut_point(seq)
+                good.write(seq[:x]+"\n")
                 good.write(infile.next())
-                good.write(infile.next())
-                good.write(infile.next())
+                good.write(infile.next()[:x]+"\n")
             else:
                 bad.write(infile.next())
                 bad.write(infile.next())
                 bad.write(infile.next())
                 bad.write(infile.next())
+
+def cut_point(seq):
+    ret = len(seq)-1
+    for char in seq[:-1:-1]:
+        if char == 'N':
+            ret -= 1
+        elif len(seq)-ret-1 >= ncut:
+            return ret
+    return len(seq)-1
 
 def asc2p(asc):
     return q2p(asc2q(asc))
