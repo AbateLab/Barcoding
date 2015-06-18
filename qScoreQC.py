@@ -226,7 +226,7 @@ def seqEndN():
     p.close()    
 
 def asc2p(asc):
-    return roughQ2P(asc2q(asc))
+    return q2p(asc2q(asc))
 
 def asc2q(asc):
     return ord(asc) - 33
