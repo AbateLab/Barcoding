@@ -2,7 +2,25 @@
 Tools for evaluating quality, and filtering barcoding data.
 Running any program with no parameters, or "--h" will display a general guide to its use.
 
-qScoreQC.py:
-We decided to filter on expected phred q-value instead of an average, as expected value carries more intuitive information with regards to eventual assembly quality. Expected phred q-value, or the expected number of incorrect bases per read, is calculated by summing each q-value associated with each base in a read from a fastq format file. However, because some assemblers might value an "unknown base" marking of "N", we provide the option of setting a "bcut", where bases with a q-score higher than "bcut" are replaced by "N", and because this base is no longer explicitely wrong, we provide the option of setting a "bcutcomp", which is summed into the total expected value, instead of the no longer relevant q-score.  
-qScoreQC.py --f {...} is dependant on logs calculated in qScoreQC.py --e {...}, but qScoreQC.py --e {...} needs only be run once, after which one can create different cuts of the original file with qScoreQC.py --f {...} as much as one pleases. qScoreQC.py --e {...} takes O(#reads * len(read)) time, while qScoreQC.py --f {...} takes O(#reads).  
-TODO: parallelize qScoreQC.py --e
+###qScoreQC.py:
+We judge each read by Expected Number of Incorrect Bases, or the sum of each base's probability incorrect taken fron the fastq file's phred q-score.
+
+We provide an option to cut a base after a certain uncertaintly level, and replace it with an N, and the user can set a "probability incorrect" value to add to the Expected Number of Incorrect Bases score.
+
+We provide an option to cut all sequential N's off the end of a read if there are more than a user specified value. Please note that most existing bioinformatics tools don't play nice with files with non-homogenous read lengths.
+
+We provide the capability of graphing certain characteristics of read quality - a cummulative histogram of read scores, a graph of the number of reads with score below a user set threshold, a graph of the distribution of N's over the positions on the read, and a cummulative histogram of reads ending in x number of sequential N's
+
+One must run the eval option before other options are possible. One only needs to run the eval option once. Please read qScoreQC's help text for more specific usage help.
+
+TODO: expand "cut the end of the read if the read is actually short, and Illumina just put N's to fill in spaces" functionality, and some more extensive logging.
+
+###dfsCluster.py:
+Intended to cluster pcr output sequences into groups of sequences all originating from a unique pcr input sequence
+
+Still in the works as to UI, although it will print in terminal the clusters it finds. As the name suggests, dfsCluster employs a dfs over a hamming space, but can only visit nodes specified by pcr output sequences. This should work because
+
+1. PCR in the overwhelming majority of the time will not make more than 1 error per sequence
+2. The hamming space is large enough, and the error rate is low enough, that random walks originating from random points in the space will not ever come closer than 2 hamming distance of another path.
+
+TODO:Everything
