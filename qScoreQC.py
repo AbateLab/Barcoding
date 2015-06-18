@@ -45,7 +45,7 @@ def evalq():
     with open(args.input, 'r') as f, open(args.folder + "/log", "w") as log,\
     open(args.folder + "/nReplace", "w") as nRep, open(args.folder + "/report", "w") as rep:
         f.next()
-        npos = [0] * len(f.next().rstrip('\n'))
+        npos = []
         f.seek(0)
         t = 0 
         for line in f:
@@ -57,8 +57,6 @@ def evalq():
                 print "sequence and qscore different lengths: " + lab
                 return
             e = 0
-            n = 0
-            i = -2           
             for i in range(len(exp)-1):
                 score = asc2p(exp[i])
                 if score > args.basecutoff:
@@ -67,11 +65,15 @@ def evalq():
                     seq = list(seq)
                     seq[i] = 'N'
                     seq = "".join(seq)
+                    while len(npos) <= i:
+                        npos.append(0)
                     npos[i] += 1.0
                     e += args.basecomp
                 else:
                     e += score
-            while seq[i] == 'N' and n < len(seq):
+            i = -2
+            n = 0
+            while n < len(seq.rstrip("\n")) and seq[i] == 'N':
                 n += 1
                 i -= 1
             log.write(str(e) + " " + str(n) + "\n")
