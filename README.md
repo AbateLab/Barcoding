@@ -13,7 +13,7 @@ We provide the capability of graphing certain characteristics of read quality - 
 
 One must run the eval option before other options are possible. One only needs to run the eval option once. Please read qScoreQC's help text for more specific usage help.
 
-TODO: expand "cut the end of the read if the read is actually short, and Illumina just put N's to fill in spaces" functionality, and some more extensive logging.
+TODO: expand "cut the end of the read if the read is actually short, and Illumina just put N's to fill in spaces" functionality.
 
 ###dfsCluster.py:
 Intended to cluster pcr output sequences into groups of sequences all originating from a unique pcr input sequence
