@@ -43,10 +43,11 @@ def evalq():
         print "could not find input file: " + args.input
         return
     with open(args.input, 'r') as f, open(args.folder + "/log", "w") as log,\
-    open(args.folder + "/nReplace", "w") as nRep:
+    open(args.folder + "/nReplace", "w") as nRep, open(args.folder + "/report", "w") as rep:
         f.next()
         npos = [0] * len(f.next().rstrip('\n'))
         f.seek(0)
+        t = 0 
         for line in f:
             lab = line
             seq = f.next()
@@ -57,9 +58,11 @@ def evalq():
                 return
             e = 0
             n = 0
-            i = -2            
+            i = -2           
             for i in range(len(exp)-1):
                 score = asc2p(exp[i])
+                if score > args.basecutoff:
+                    t += 1
                 if score > args.basecutoff or seq[i] == 'N':
                     seq = list(seq)
                     seq[i] = 'N'
@@ -77,6 +80,9 @@ def evalq():
             nRep.write(pls)
             nRep.write(exp)
         log.write(str(npos))
+        rep.write("Input file: " + args.input + "\nBase Cutoff: " + str(args.basecutoff) +
+            "\nN Compensation: " + str(args.basecomp) + "\nNumber of Bases N'd: " + str(t) +
+            "\n******************************\n\n")
 
 def filterq():
     if not os.path.exists(args.folder):
@@ -90,7 +96,12 @@ def filterq():
         return
     with open(args.folder + "/nReplace", "r") as f, open(args.folder + "/log", "r") as log,\
         open(args.folder + "/" + args.out, "w") as good,\
-        open(args.folder + "/" + args.out + ".cut", "w") as bad:
+        open(args.folder + "/" + args.out + ".cut", "w") as bad,\
+        open(args.folder + "/report", "a") as rep:
+        g = 0
+        b = 0
+        cg = 0
+        cb = 0
         for line in f:
             l = log.next().split()
             n = int(l[1])
@@ -101,11 +112,21 @@ def filterq():
                 good.write(f.next()[:-n-1]+"\n")
                 good.write(f.next())
                 good.write(f.next()[:-n-1]+"\n")
+                if n >= args.ncutoff:
+                    cg += 1
+                g += 1
             else:
                 bad.write(line)
                 bad.write(f.next()[:-n-1]+"\n")
                 bad.write(f.next())
-                bad.write(f.next()[:-n-1]+"\n")                
+                bad.write(f.next()[:-n-1]+"\n")
+                if n >= args.ncutoff:
+                    cb += 1
+                b += 1
+        rep.write("Filter to '" + str(args.out) + "'\nRead Error Cutoff: " + str(args.readcutoff) +
+            "\nSequential Ending N Cutoff: " + str(args.ncutoff) + "\nNumber of Remaining Reads: " +
+            str(g) + "\n\tNumber of Trimmed Reads: " + str(cg) + "\nNumber of Cut Reads: " +
+            str(b) + "\n\tNumber of Trimmed Reads: " + str(cb))
 
 def fracErrorGraph():
     if not os.path.exists(args.folder):
@@ -236,39 +257,6 @@ def p2q(p):
 
 def q2p(q):
     return 10**(-float(q) / 10)
-
-def roughQ2P(q):
-    p = [1.0, 0.7943282347242815, 0.6309573444801932, 0.5011872336272722,
-    0.3981071705534972, 0.31622776601683794, 0.251188643150958,
-    0.19952623149688797, 0.15848931924611134, 0.12589254117941673,
-    0.1, 0.07943282347242814, 0.06309573444801933, 0.05011872336272722,
-    0.039810717055349734, 0.03162277660168379, 0.025118864315095794,
-    0.0199526231496888, 0.015848931924611134, 0.012589254117941675, 0.01,
-    0.007943282347242814, 0.00630957344480193, 0.005011872336272725,
-    0.003981071705534973, 0.0031622776601683794, 0.0025118864315095794,
-    0.001995262314968879, 0.001584893192461114, 0.0012589254117941675,
-    0.001, 0.0007943282347242813, 0.000630957344480193, 0.0005011872336272725,
-    0.00039810717055349735, 0.00031622776601683794, 0.00025118864315095795,
-    0.00019952623149688788, 0.00015848931924611142, 0.00012589254117941674,
-    0.0001, 7.943282347242822e-05, 6.309573444801929e-05, 5.011872336272725e-05,
-    3.9810717055349695e-05, 3.1622776601683795e-05, 2.5118864315095822e-05,
-    1.9952623149688786e-05, 1.584893192461114e-05, 1.2589254117941661e-05,
-    1e-05, 7.943282347242822e-06, 6.30957344480193e-06, 5.011872336272725e-06,
-    3.981071705534969e-06, 3.162277660168379e-06, 2.5118864315095823e-06,
-    1.9952623149688787e-06, 1.584893192461114e-06, 1.2589254117941661e-06,
-    1e-06, 7.943282347242822e-07, 6.30957344480193e-07, 5.011872336272725e-07,
-    3.981071705534969e-07, 3.162277660168379e-07, 2.5118864315095823e-07,
-    1.9952623149688787e-07, 1.584893192461114e-07, 1.2589254117941662e-07,
-    1e-07, 7.943282347242822e-08, 6.30957344480193e-08, 5.011872336272725e-08,
-    3.981071705534969e-08, 3.162277660168379e-08, 2.511886431509582e-08,
-    1.9952623149688786e-08, 1.5848931924611143e-08, 1.2589254117941661e-08,
-    1e-08, 7.943282347242822e-09, 6.309573444801943e-09, 5.011872336272715e-09,
-    3.981071705534969e-09, 3.1622776601683795e-09, 2.511886431509582e-09,
-    1.9952623149688828e-09, 1.584893192461111e-09, 1.2589254117941663e-09,
-    1e-09, 7.943282347242822e-10, 6.309573444801942e-10, 5.011872336272714e-10,
-    3.9810717055349694e-10, 3.1622776601683795e-10, 2.511886431509582e-10,
-    1.9952623149688828e-10, 1.584893192461111e-10, 1.2589254117941662e-10]
-    return p[q]
 
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="qScoreQC evaluates and filters phred fastq files using\
