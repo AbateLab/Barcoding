@@ -24,3 +24,8 @@ Still in the works as to UI, although it will print in terminal the clusters it 
 2. The hamming space is large enough, and the error rate is low enough, that random walks originating from random points in the space will not ever come closer than 2 hamming distance of another path.
 
 TODO:Everything
+
+###readLenHist.py:
+Just a simple histogram of read length maker. Nothing to it. Tell it what fastq file to graph and the name of the output pdf.
+
+TODO:Open to suggestions
