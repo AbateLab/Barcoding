@@ -1,4 +1,4 @@
-# BarcodingQC
+# Barcoding
 Tools for evaluating quality, and filtering barcoding data.
 Running any program with no parameters, or "--h" will display a general guide to its use.
 
