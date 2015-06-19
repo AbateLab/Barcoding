@@ -212,12 +212,10 @@ def cummToleranceGraph():
     plot = plt.figure()
     plt.title("Cummulative Reads by Quality")
     plt.tick_params(axis = "both", labelsize = 8)
-    plt.ylabel("Expected Number of Errors per Read")
-    plt.xlabel("Cummulative Number of Reads")
-    plt.hist(exp, 257, color = 'blue', histtype = 'step', orientation = 'horizontal', 
-        cumulative=True, alpha = .6)
-    plt.ylim([-.01, m + .01])
-    plt.gca().invert_yaxis()
+    plt.xlabel("Expected Number of Errors per Read")
+    plt.ylabel("Cummulative Number of Reads")
+    plt.hist(exp, 257, color = 'blue', histtype = 'step', cumulative=True, alpha = .6)
+    plt.xlim([-.01, m + .01])
     p.savefig(plot)
     p.close()
 
