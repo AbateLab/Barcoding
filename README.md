@@ -3,6 +3,8 @@ Tools for evaluating quality, and filtering barcoding data.
 Running any program with no parameters, or "--h" will display a general guide to its use.
 
 ###qScoreQC.py:
+ASSUMES FASTQ and FASTA "reads" and "quality" are single lines!
+
 We judge each read by Expected Number of Incorrect Bases, or the sum of each base's probability of being incorrect taken fron the fastq file's phred q-score.
 
 We provide an option to cut a base after a certain uncertaintly level, and replace it with an N, and the user can set a "probability incorrect" value to add to the Expected Number of Incorrect Bases score.
