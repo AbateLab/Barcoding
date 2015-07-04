@@ -8,8 +8,13 @@ from matplotlib.backends.backend_pdf import PdfPages
 def main():
     counts = None
     counts = make_set(args.i)
+<<<<<<< HEAD
     countslist = sorted(counts.values(), reverse = True)
     report(countslist)
+=======
+    counts = sorted(counts.values(), reverse = True)
+    report(counts)
+>>>>>>> 3fc40de821ff67533f8943b24792e04c7524b4ff
     jackpottogram(counts)
 
 #reads fasta file to get set of barcodes to cluster
@@ -38,6 +43,7 @@ def report(counts):
 def jackpottogram(counts):
     fig = plt.figure()
     #TODO: plot jackpottogram
+<<<<<<< HEAD
     histvals = []
     for val in sorted(counts, key=counts.get): #sorts dict key by ascending frequency
         histvals.append(counts[val])
@@ -67,6 +73,8 @@ def jackpottogram(counts):
         horizontalalignment='left', fontsize='8')
     plt.show()
 
+=======
+>>>>>>> 3fc40de821ff67533f8943b24792e04c7524b4ff
     p = PdfPages(args.o + "_jckptogram.pdf")
     p.savefig(fig)
     p.close()
