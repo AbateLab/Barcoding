@@ -1,5 +1,5 @@
 # Barcoding
-Tools for evaluating quality, and filtering barcoding data.
+Tools for evaluating quality, and filtering barcoding data. Still in Development
 
 ###qScoreQC.py:
 ASSUMES FASTQ and FASTA "reads" and "quality" are single lines!
