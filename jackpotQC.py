@@ -4,12 +4,15 @@ import matplotlib
 matplotlib.use('Agg')
 import matplotlib.pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+from matplotlib import cm
+import numpy as np
+import random
 
 def main():
     counts = None
     counts = make_set(args.i)
-    countslist = sorted(counts.values(), reverse = True)
-    report(countslist)
+    counts = sorted(counts.values(), reverse = True)
+    #report(counts)
     jackpottogram(counts)
 
 #reads fasta file to get set of barcodes to cluster
@@ -34,24 +37,22 @@ def report(counts):
         print str(counts[x]) + ' reads: ' + perstr + '%'
 
 def jackpottogram(counts):
-    fig = plt.figure()
-    #TODO: plot jackpottogram
-    histvals = []
-    for val in sorted(counts, key=counts.get): #sorts dict key by ascending frequency
-        histvals.append(counts[val])
-    cumulvals = [] #now make it cumulative
-    cumulvals.append(histvals[0]) #first val is just the smallest val
-    for x in range(1,len(histvals)): #x represents indexes from 1 to n
-        cumulvals.append(histvals[x] + cumulvals[x-1]) #successive vals are cumulative    
+    fig1 = plt.figure() #cumulative histogram
+    counts.reverse() #make into ascending
+    cumulvals = []
+    cumulvals.append(counts[0])
+    for x in range(1,len(counts)):
+        cumulvals.append(counts[x] + cumulvals[x-1])
     x_range = range(len(counts))
     n = len(counts)
-    slope = float(cumulvals[n-1]) / n
+    total = float(cumulvals[n-1])
+    slope = total / n
     expected = []
     for i in x_range:
         expected.append(i*slope)
     plt.plot(x_range, cumulvals)
     plt.fill_between(x_range, cumulvals, 0, color='blue', alpha=0.5)
-    plt.plot(x_range, expected, 'r--') #expected distr
+    plt.plot(x_range, expected, 'r--') #expected distr 
     plt.plot(x_range, x_range, 'r--') #slope of 1
     plt.title('Cumulative Histogram of Barcode Reads')
     plt.xlabel('Barcodes')
@@ -63,9 +64,41 @@ def jackpottogram(counts):
     plt.annotate('Slope = 1', xy=(x_range[n-300000], x_range[n-300000]), 
         xytext=(x_range[n-1]-300000, x_range[n-1]+100000), arrowprops=dict(facecolor='black', shrink=0.05),
         horizontalalignment='left', fontsize='8')
-    plt.show()
     p = PdfPages(args.o + "_jckptogram.pdf")
-    p.savefig(fig)
+    p.savefig(fig1)
+    fig2 = plt.figure() #pie chart
+    counts.reverse() #make descending
+    pervals = []
+    labels = []
+    for x in range(100): #first 100 gets own slice
+        per = 100*(counts[x]/float(total))
+        if per < 1.0:
+            rest = x
+            break
+        else:
+            pervals.append(per)
+            perstr = '%.3f' % per
+            labels.append(perstr + '%')
+    other = 0
+    for x in range(rest, len(counts)): #rest are grouped into own slice
+        other += counts[x]
+    other = 100* (other/float(total))
+    pervals.append(other)
+    otherstr = 'Other: %.3f' % other
+    labels.append(otherstr + '%')
+    ncolors = rest + 1
+    cs = [] #for a rainbow gradient of colors
+    color = iter(cm.rainbow(np.linspace(0,1,ncolors)))
+    for i in range(ncolors-1):
+        c = next(color)
+        cs.append(c)
+    random.shuffle(cs)
+    cs.append('grey') #other slice = always grey
+    handles, text = plt.pie(pervals, colors=cs)
+    plt.legend(handles, labels, loc=5, prop={'size':8})
+    plt.axis('equal')
+    plt.title('Reads per Barcode by Percentage')
+    p.savefig(fig2)
     p.close()
 
 def lowres(counts):
