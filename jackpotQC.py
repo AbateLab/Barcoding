@@ -10,7 +10,7 @@ def main():
     counts = make_set(args.i)
     countslist = sorted(counts.values(), reverse = True)
     report(countslist)
-    #jackpottogram(counts)
+    jackpottogram(counts)
 
 #reads fasta file to get set of barcodes to cluster
 def make_set(f):
