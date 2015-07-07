@@ -1,20 +1,25 @@
 # Barcoding
 Tools for evaluating quality, and filtering barcoding data. Still in Development
 
+Run any script without arguments, or -h or --help for more detailed usage description.
 ###qScoreQC.py:
-ASSUMES FASTQ and FASTA "reads" and "quality" are single lines!
+qScoreQC provides several sequencing read quality control options:
 
-We judge each read by Expected Number of Incorrect Bases, or the sum of each base's probability of being incorrect taken fron the fastq file's phred q-score.
+1. Replace bases below a certain q-score with 'N', and replace the associated q-score with specified 'N' q-score value
+2. Cut the end of the read if the read is actually short, and Illumina just put N's to fill in spaces (still in the rough)
+3. Filter reads using "Expected Number of Incorrect Bases per Read", or the sum of the probabilities of each base in a read being incorrect. Reads with Exp < specified amount(0 -> len(read)) will be placed in the good pile.
+4. Filter reads using "Minimum Allowable Q-Score", where only reads with all individual-base q-scores > specified q-score will be placed in the good pile.
+5. Filter reads using "Minimum Percent of Read > specified Q-Score", where only reads with percent of reads > specified Q-Score > specified percent will be placed in the good pile.
 
-We provide an option to cut a base after a certain uncertaintly level, and replace it with an N, and the user can set a "probability incorrect" value to add to the Expected Number of Incorrect Bases score.
+Notice several dependencies between these options which influence workflow - First, all the filter options depend on what bases are replaced with N's, which modifies q-scores. This is only reasonable, because the information carried by "N" is less precise, but more accurate, and its Q-score should reflect this. Second, options 2 through 5 may be repeated multiple times with cutoff changes, but their heuristic scores would not change between these repetitions.
 
-We provide an option to cut all sequential N's off the end of a read if there are more than a user specified value. Please note that most existing bioinformatics tools don't play nice with files with non-homogenous read lengths.
+In light of this, we decide to accomplish qScoreQC.py's objective using two modules:
 
-We provide the capability of graphing certain characteristics of read quality - a cummulative histogram of read scores, a graph of the number of reads with score below a user set threshold, a graph of the distribution of N's over the positions on the read, and a cummulative histogram of reads ending in x number of sequential N's
+1. (Eval) Replace all the N's needed, Calculate all the Heuristics. This depends on a folder to save logs into, an input file, an N cutoff, an N replacement Q-Score, and the specified Q-Score for option 5. (Only need to do once)
+2. (Filter) Filter/trim reads in whatever way you wish. This depends on a folder with logs, an output tag, and whatever filter/trim cutoff you choose.
+Eval takes around 8 times longer than Filter.
 
-One must run the eval option before other options are possible. One only needs to run the eval option once. Please read qScoreQC's help text for more specific usage help.
-
-TODO: expand "cut the end of the read if the read is actually short, and Illumina just put N's to fill in spaces" functionality.
+To assist with choosing the right parameters for filtering, replacing, and trimming, qScoreQC provides a few graphs, also saved into the folder specified in the eval run. On the eval run, five graphs are provided - a cummulative histogram of number of N's a read ends with (will be changed as 2. changes), a base composition per read position graph, and cummulative histograms of scores for each heuristic. On filter run, a histogram of the scores remaining will be provided. Also, general reports can be found in folder/report.
 
 ###dfsCluster.py:
 Intended to cluster pcr output sequences into groups of sequences all originating from a unique pcr input sequence
