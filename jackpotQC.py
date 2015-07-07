@@ -48,10 +48,12 @@ def jackpottogram(counts):
     expected = []
     for i in x_range:
         expected.append(i*slope)
-    plt.plot(x_range, cumulvals)
-    plt.fill_between(x_range, cumulvals, 0, color='blue', alpha=0.5)
-    plt.plot(x_range, expected, 'r--') #expected distr 
-    plt.plot(x_range, x_range, 'r--') #slope of 1
+    x, y = lowres(x_range, cumulvals)
+    plt.plot(x, y)
+    plt.fill_between(x, y, 0, color='blue', alpha=0.5)
+    x, y = lowres(x_range, expected)
+    plt.plot(x, y, 'r--') #expected distr 
+    plt.plot(x, x, 'r--') #slope of 1
     plt.title('Cumulative Histogram of Barcode Reads')
     plt.xlabel('Barcodes')
     plt.ylabel('Reads')
@@ -72,7 +74,7 @@ def jackpottogram(counts):
     rest = 0
     for x in range(100): #first 100 gets own slice
         per = 100*(counts[x]/float(total))
-        if per < 1.0:
+        if per < 1.0 and x > 10:
             rest = x
             break
         else:
@@ -94,31 +96,31 @@ def jackpottogram(counts):
         cs.append(c)
     random.shuffle(cs)
     cs.append('grey') #other slice = always grey
-    handles, text = plt.pie(pervals, colors=cs)
-    plt.legend(handles, labels, loc=5, prop={'size':8})
+    handles, text = plt.pie(pervals, colors=cs, startangle = 90)
+    for handle in handles:
+        handle.set_edgecolor('white')
+        handle.set_linewidth(.05)
+    plt.legend(handles, labels, title = "Largest Barcodes", loc="upper right", prop={'size':8})
     plt.axis('equal')
     plt.title('Reads per Barcode by Percentage')
     p.savefig(fig2)
     p.close()
 
-def lowres(counts):
-    low = []
-    res = counts[0] / 100.
-    clear = True
-    tmp = 0
-    for x in counts:
-        if clear:
-            if x < res:
-                clear = False
-                tmp += x
-            else:
-                low.append(x)
-        else:
-            if tmp >= res:
-                low.append(tmp)
-            else:
-                tmp += x
-    return low
+def lowres(x, y):
+    t = 1
+    if len(x) != len(y):
+        return "lists must be same length"
+    while len(x) / t > 1000:
+        t += 1
+    lx = []
+    ly = []
+    for i in range(0, len(x), t):
+        lx.append(x[i])
+        ly.append(y[i])
+    if i + 1 < len(x):
+        lx.append(x[-1])
+        ly.append(y[-1])
+    return lx, ly
 
 #ripped from https://github.com/lh3/readfq
 def readfx(fp): # this is a generator function
