@@ -9,9 +9,7 @@ import numpy as np
 import random
 
 def main():
-    counts = None
-    counts = make_set(args.i)
-    counts = sorted(counts.values(), reverse = True)
+    counts = sorted(make_set(args.i).values(), reverse = True)
     #report(counts)
     jackpottogram(counts)
 
@@ -58,8 +56,9 @@ def jackpottogram(counts):
     plt.xlabel('Barcodes')
     plt.ylabel('Reads')
     plt.tick_params(axis='both', which='major', labelsize='8')
-    plt.annotate('Slope for even distribution(' + str(int(slope)) + ')', xy=(x_range[n-100000], expected[n-100000]), 
-        xytext=(x_range[n-1]-500000, expected[n-1]-100000), arrowprops=dict(facecolor='black', shrink=0.05),
+    plt.annotate('Slope for even distribution(' + str(int(slope)) + ')', xy=(x_range[n-100000], 
+        expected[n-100000]), xytext=(x_range[n-1]-500000, expected[n-1]-100000), 
+        arrowprops=dict(facecolor='black', shrink=0.05),
         horizontalalignment='center', fontsize='8') #wont look nice for every graph u plot... v arbritrary
     plt.annotate('Slope = 1', xy=(x_range[n-300000], x_range[n-300000]), 
         xytext=(x_range[n-1]-300000, x_range[n-1]+100000), arrowprops=dict(facecolor='black', shrink=0.05),
@@ -70,6 +69,7 @@ def jackpottogram(counts):
     counts.reverse() #make descending
     pervals = []
     labels = []
+    rest = 0
     for x in range(100): #first 100 gets own slice
         per = 100*(counts[x]/float(total))
         if per < 1.0:
