@@ -11,7 +11,7 @@ qScoreQC provides several sequencing read quality control options:
 4. Filter reads using "Minimum Allowable Q-Score", where only reads with all individual-base q-scores > specified q-score will be placed in the good pile.
 5. Filter reads using "Minimum Percent of Read > specified Q-Score", where only reads with percent of reads > specified Q-Score > specified percent will be placed in the good pile.
 
-Notice several dependencies between these options which influence workflow - First, all the filter options depend on what bases are replaced with N's, which modifies q-scores. This is only reasonable, because the information carried by "N" is less precise, but more accurate, and its Q-score should reflect this. Second, options 2 through 5 may be repeated multiple times with cutoff changes, but their heuristic scores would not change between these repetitions.
+Notice several dependencies between these options which influence workflow - First, all the filter options depend on what bases are replaced with N's, which modifies q-scores. This is only reasonable, because the information carried by "N" is less precise, but more accurate, and Q-score reflects accuracy. Second, options 2 through 5 may be repeated multiple times with cutoff changes, but their heuristic scores would not change between these repetitions.
 
 In light of this, we decide to accomplish qScoreQC.py's objective using two modules:
 
