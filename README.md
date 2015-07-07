@@ -1,7 +1,7 @@
 # Barcoding
 Tools for evaluating quality, and filtering barcoding data. Still in Development
 
-Run any script without arguments, or -h or --help for more detailed usage description.
+Run any script without arguments, or -h or --help for basic usage description.
 ###qScoreQC.py:
 qScoreQC provides several sequencing read quality control options:
 
@@ -19,7 +19,7 @@ In light of this, we decide to accomplish qScoreQC.py's objective using two modu
 2. (Filter) Filter/trim reads in whatever way you wish. This depends on a folder with logs, an output tag, and whatever filter/trim cutoff you choose.
 Eval takes around 8 times longer than Filter.
 
-To assist with choosing the right parameters for filtering, replacing, and trimming, qScoreQC provides a few graphs, also saved into the folder specified in the eval run. On the eval run, five graphs are provided - a cummulative histogram of number of N's a read ends with (will be changed as 2. changes), a base composition per read position graph, and cummulative histograms of scores for each heuristic. On filter run, a histogram of the scores remaining will be provided. Also, general reports can be found in folder/report.
+To assist with choosing the right parameters for filtering, replacing, and trimming, qScoreQC provides a few graphs, also saved into the folder specified in the eval run. After the eval run, five graphs can be provided with the '-g' tag - a cummulative histogram of number of N's a read ends with (will be changed as 2. changes), a base composition per read position graph, and cummulative histograms of scores for each heuristic. On each filter run, a histogram of the scores remaining, using the filter run's selected heuristic, will be provided. Also, general reports can be found in folder/report.
 
 ###dfsCluster.py:
 Intended to cluster pcr output sequences into groups of sequences all originating from a unique pcr input sequence
