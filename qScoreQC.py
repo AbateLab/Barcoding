@@ -192,7 +192,7 @@ def filterq():
             "\nNumber of Cut Reads: " + str(b) + "\n\tNumber of Trimmed Reads: " + str(cb))
     if scores:
         sHist(scores, ["Expected Incorrect Bases per Read", "Maximum Single Base Error", 
-            "Percent of Read Better Than pcut"][args.fopt], False, args.filter)
+            "Percent of Read Better Than pcut"][args.fopt], False, args.filter, 'mgc'[args.fopt])
     else:
         print "Cutoff too stringent - no reads made the cut"
 
@@ -302,15 +302,15 @@ def scoreDistribution():
             exp += [float(e)]
             mxp += [float(m)]
             pcp += [1-float(p)]
-    sHist(exp, "Expected Incorrect Bases per Read", True, 'expHist')
-    sHist(mxp, "Maximum Single Base Error", True, 'mxpHist')
-    sHist(pcp, "Percent of Read Worse Than pcut", True, 'pcpHist')
+    sHist(exp, "Expected Incorrect Bases per Read", True, 'expHist', 'm')
+    sHist(mxp, "Maximum Single Base Error", True, 'mxpHist', 'g')
+    sHist(pcp, "Percent of Read Worse Than pcut", True, 'pcpHist', 'c')
 
-def sHist(scores, heuristic, cum, fname):
+def sHist(scores, heuristic, cum, fname, color):
     p = PdfPages(args.folder + "/" + fname + ".pdf")
     plot = plt.figure()
     scores.sort()
-    plt.hist(scores, bins = 251, cumulative = cum, histtype = 'step', fill = True, alpha = .3)
+    plt.hist(scores, bins = 251, cumulative = cum, histtype = 'stepfilled', alpha = .3, color = color)
     plt.title(heuristic + "%s Histogram" %" Cumulative" if cum else "")
     plt.xlabel(heuristic)
     plt.ylabel("Number of Reads")
