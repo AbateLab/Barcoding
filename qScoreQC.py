@@ -9,7 +9,7 @@ matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
 
-#converts q-score arguments to probabilities, and finishes
+#converts Q-score arguments to probabilities, and finishes
 #argument parsing by actually calling the required functions.
 def main():
     if args.eval:
@@ -371,32 +371,36 @@ if __name__ == '__main__':
         different graphs - number of each base at each position, N tail lengths cumulative histogram,\
         Expected Errors per Read histogram, Min Q-score per Read histogram, Percent Read above Q-Score\
         Histogram - to assist the selection of filtering parameters. You may filter by any of three\
-        heuristics - Errors per Read (summation of probabilities associated with q-score), minimum\
-        allowable q-score per read, and minimum percent of read above selected q-score", 
+        heuristics - Errors per Read (summation of probabilities associated with Q-score), minimum\
+        allowable Q-score per read, and minimum percent of read above selected Q-score", 
         formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("folder", help = "folder outputting to, or working in")
     parser.add_argument("-e", "--eval", help = "run Eval function on specified fastq file", default = "")
     parser.add_argument("-pc", "--pcut", help = "cutoff for quality of base used in the percent qualifying\
-        filter, interprets as phred q-score if integral, and as probability incorrect otherwise.", 
+        filter. Bases with Q-Score better than pcut count towards 'percent qualifying'.\
+        Interprets as phred Q-score if integral, and as probability incorrect otherwise.", 
         default = 30, type = float)
-    parser.add_argument("-b", "--basecutoff", help = "cutoff for base conversion to N, \
-        interprets as phred q-score if integral, and as probability incorrect otherwise.", 
-        default = 20, type = float)
-    parser.add_argument("-bc", "--basecomp", help = "reported error level of a base replaced by N,\
-        interprets as phred q-score if integral, and as probability incorrect otherwise.", 
+    parser.add_argument("-b", "--basecutoff", help = "cutoff for base conversion to N. Bases with Q-score\
+        worse than basecutoff are replaced with N's. Interprets as phred Q-score if integral, and as\
+        probability incorrect otherwise.", default = 20, type = float)
+    parser.add_argument("-bc", "--basecomp", help = "reported Q-score of a base replaced by N,\
+        interprets as phred Q-score if integral, and as probability incorrect otherwise.", 
         default = 22, type = float)
-    parser.add_argument("-g", "--graph", help = "creates graphs if specified", 
-        action = "store_true", default = False)
 
     parser.add_argument("-f", "--filter", help = "run Filter function, outputting using specified tag",
         default = "")
-    parser.add_argument("-fo", "--fopt", help = "Filter using 0: Expected Value, 1: maximum Phred, \
-        2: percent qualifying", type=int, choices = [0, 1, 2], default = 0)
-    parser.add_argument("-n", "--ncutoff", help = "if read ends in over x number of N's, all sequential\
-        N's at end of read will be disarded.", default = 1000, type = int)
-    parser.add_argument("-r", "--readcutoff", help = "fo:0 - expected number of incorrect bases\
-        (0 to len(read)), fo:1 - maximum allowable phred interprets as q-score if integral, and\
-        probability incorrect otherwise, fo:2 - percent of a read above pcut", default = .001, type = float)
+    parser.add_argument("-fo", "--fopt", help = "select filtering heuristic with 0: Expected Number of\
+        Incorrect Bases per Read, 1: Maximum Allowable Q-score, 2: Percent of Read over pcut", 
+        type=int, choices = [0, 1, 2], default = 0)
+    parser.add_argument("-n", "--ncutoff", help = "Reads which end in over ncutoff sequential N's will\
+        have all sequential N's from end trimmed", default = 1000, type = int)
+    parser.add_argument("-r", "--readcutoff", help = "fo:0 - Reads with Exp score > readcutoff will be\
+        cut (0 to len(read)), fo:1 - Reads whose worst base is worse than readcutoff will be cut\
+        interprets as Q-score if integral, and probability incorrect otherwise, fo:2 - Reads with less\
+        than readcutoff percent of bases better than pcut will be cut.", default = .001, type = float)
+    
+    parser.add_argument("-g", "--graph", help = "creates graphs if specified", 
+        action = "store_true", default = False)
     parser.add_argument("-v", "--verbose", help = "output progress information to terminal",
         action = "store_true", default = False)
     if len(sys.argv) < 2:
