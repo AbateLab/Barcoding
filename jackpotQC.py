@@ -10,7 +10,7 @@ import random
 
 def main():
     counts = sorted(make_set(args.i).values(), reverse = True)
-    #report(counts)
+    report(counts)
     jackpottogram(counts)
 
 #reads fasta file to get set of barcodes to cluster
@@ -26,6 +26,7 @@ def make_set(f):
 
 def report(counts):
     print "max: " + str(counts[0]) + "\nmin: " + str(counts[-1])
+    """
     total = 0
     for x in range(len(counts)):
         total += counts[x]
@@ -33,6 +34,7 @@ def report(counts):
         per = 100*(counts[x] / float(total))
         perstr = '%.2f' % per
         print str(counts[x]) + ' reads: ' + perstr + '%'
+    """
 
 def jackpottogram(counts):
     fig1 = plt.figure() #cumulative histogram
@@ -80,7 +82,7 @@ def jackpottogram(counts):
         else:
             pervals.append(per)
             perstr = '%.3f' % per
-            labels.append(perstr + '%')
+            labels.append(str(counts[x]) + " - " + perstr + '%')
     other = 0
     for x in range(rest, len(counts)): #rest are grouped into own slice
         other += counts[x]
