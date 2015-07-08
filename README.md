@@ -17,7 +17,7 @@ In light of this, we decide to accomplish qScoreQC.py's objective using two modu
 
 1. (Eval) Replace all the N's needed, Calculate all the Heuristics. This depends on a folder to save logs into, an input file, an N cutoff, an N replacement Q-Score, and the specified Q-Score for option 5. (Only need to do once)
 2. (Filter) Filter/trim reads in whatever way you wish. This depends on a folder with logs, an output tag, and whatever filter/trim cutoff you choose.
-Eval takes around 8 times longer than Filter.
+Eval is O(read length * reads), and filter is O(reads)
 
 To assist with choosing the right parameters for filtering, replacing, and trimming, qScoreQC provides a few graphs, also saved into the folder specified in the eval run. After the eval run, five graphs can be provided with the '-g' tag - a cummulative histogram of number of N's a read ends with (will be changed as 2. changes), a base composition per read position graph, and cummulative histograms of scores for each heuristic. On each filter run, a histogram of the scores remaining, using the filter run's selected heuristic, will be provided. Also, general reports can be found in folder/report.
 
