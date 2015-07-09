@@ -84,7 +84,7 @@ def evalq():
                 score = asc2p(exp[i])
                 #find max phred score
                 if score > m:
-                    m = score
+                    m = min(score, args.basecomp)
                 #find percent > phred
                 if score < args.pcut:
                     p += 1.0
