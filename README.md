@@ -34,7 +34,7 @@ TODO:Everything
 ###jackpotQC.py:
 jackpotQC provides visualizations for "jackpotting" of barcode groups, or the quality of PCR amplifying different sequences in hugely uneven quantities. Input a fasta/q file of sequences, and jackpottogram will create a histogram, and a pie chart based on the number of copies of each unique sequence.
 
-TODO:Open to suggestions
+TODO:Make cummulative histogram binned by barcode size
 
 ###readLenHist.py:
 Just a simple histogram of read length maker. Nothing to it. Tell it what fastq file to graph and the name of the output pdf.
