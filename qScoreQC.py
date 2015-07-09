@@ -86,7 +86,7 @@ def evalq():
                 if score > m:
                     m = min(score, args.basecomp)
                 #find percent > phred
-                if score < args.pcut:
+                if min(score, args.basecomp) < args.pcut:
                     p += 1.0
                 #find expected number of bases incorrect
                 if score > args.basecutoff:
