@@ -85,19 +85,25 @@ def jackpottogram(counts):
             labels.append(str(counts[x]) + " - " + perstr + '%')
     other = 0
     for x in range(rest, len(counts)): #rest are grouped into own slice
+        if counts[x] == 1:
+            break
         other += counts[x]
     other = 100* (other/float(total))
     pervals.append(other)
     otherstr = 'Other: %.3f' % other
     labels.append(otherstr + '%')
-    ncolors = rest + 1
+    ones = 100 * ((len(counts)-x)/float(total))
+    pervals.append(ones)
+    onestr = "1's: %.3f" % ones
+    labels.append(onestr + '%')
     cs = [] #for a rainbow gradient of colors
-    color = iter(cm.rainbow(np.linspace(0,1,ncolors)))
-    for i in range(ncolors-1):
+    color = iter(cm.rainbow(np.linspace(0,1,rest)))
+    for i in range(rest):
         c = next(color)
         cs.append(c)
     random.shuffle(cs)
     cs.append('grey') #other slice = always grey
+    cs.append('black') #1's slice = always black
     handles, text = plt.pie(pervals, colors=cs, startangle = 90)
     for handle in handles:
         handle.set_edgecolor('white')
