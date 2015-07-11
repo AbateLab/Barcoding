@@ -19,38 +19,25 @@ we assume:
 """
 
 def main():
-    barcodes = None
-    counts = None
-    start = time.time()
-    barcodes, counts = make_set(args.i)
-    print "read to set:\t" + str(time.time() - start)
-    start = time.time()
+    barcodes, ids = make_set(args.i)
     clusters = cluster(barcodes)
-    print "cluster:\t" + str(time.time() - start)
-    start = time.time()
-    centers = center(clusters, counts)
-    print "center: \t" + str(time.time() - start)
-    start = time.time()
-    print_clusters(centers, clusters, args.out+".ctr")
-    print "print cl's':\t"+ str(time.time() - start)
-    start = time.time()
-    if args.rchist:
-        readsPCluster(clusters, counts)
-        print "readsper:\t" + str(time.time() - start)
-        start = time.time()
-    if args.bchist:
-        bcodePCluster(clusters)
-        print "bcodesper:\t" + str(time.time() - start)
-        start = time.time()
-    if args.mindist:
-        minDistHist(centers)
-        print "mindist:\t" + str(time.time() - start)
-        start = time.time()
+    centers = center(clusters, ids)
+    print_cids(centers, clusters, ids, args.out+".cid")
+    #if args.rchist:
+    #    readsPCluster(clusters, ids)
+    #if args.bchist:
+    #    bcodePCluster(clusters)
+    #if args.mindist:
+    #    minDistHist(centers)
 
 #takes set of barcodes, outputs array of string array of clusters
+#No string array will be empty
+#[["a", "b", "c"], ["d"], ["e", f"], ["g", "h", "i", "j"]]
 def cluster(barcodes):
     clusters = []
     b = barcodes
+    i = 0
+    start = time.time()
     while b:
         tmp = b.pop()
         s = [tmp]
@@ -62,18 +49,27 @@ def cluster(barcodes):
                     c.append(x)
                     b.remove(x)
         clusters.append(c)
+        i += 1
+        if time.time() - start > 1:
+            sys.stdout.write("\rGrouped %i clusters" %i)
+            sys.stdout.flush()
+            start = time.time()
+    sys.stdout.write("\rGrouped %i clusters\n" %i)
     return clusters
 
 #takes an array of string array of clusters, and dictionary of unique barcode
 #frequencies, returns a string array of "centers" of each cluster
-def center(clusters, counts):
+#["c0", "c1", "c2"]
+def center(clusters, ids):
     centers = []
     check = set()
     bases = ['A', 'C', 'T', 'G']
+    t = 0
+    start = time.time()
     for cluster in clusters:
         distr = []
         for barcode in cluster:
-            n = counts[barcode]
+            n = len(ids[barcode])
             for i in range(len(barcode)):
                 while len(distr) <= i:
                     distr.append([0, 0, 0, 0])
@@ -89,12 +85,37 @@ def center(clusters, counts):
             print "Multiple Clusters centered at " + center
         check |= {center}
         centers.append(center)
+        t += 1
+        if time.time() - start > 1:
+            sys.stdout.write("\rCentr'd %i clusters" %t)
+            sys.stdout.flush()
+            start = time.time()
+    sys.stdout.write("\rCentered all %i clusters\n" %t)
     return centers
 
-def print_cseq(centers, clusters, f):
+def print_cids(centers, clusters, ids, f):
     with open(f, 'w') as f:
-        for center, cluster in zip(centers, clusters):
-            f.write(">" + center + "\n" + str(cluster) + "\n")
+        labs  = []
+        t = 1
+        start = time.time()
+        for i in clusters.pop(0):
+            labs += ids[i]
+        f.write(">" + centers.pop(0) + "\n" + str(labs))
+        while centers and clusters:
+            labs  = []
+            for i in clusters.pop(0):
+                labs += ids[i]
+            f.write("\n>" + centers.pop(0) + "\n" + str(labs))
+            t += 1
+            if time.time() - start > 1:
+                sys.stdout.write("\rWrote %i clusters" %t)
+                sys.stdout.flush()
+                start = time.time()
+        sys.stdout.write("\rWrote all %i clusters\n" %t)
+        if centers:
+            print "More centers than clusters"
+        if clusters:
+            print "More clusters than centers"        
 
 """#takes clusters, and centers, and appends center at the end of all labels of
 #barcodes in same cluster
@@ -119,19 +140,32 @@ def label(clusters, centers):
                 out.write(seq)"""
 
 #reads fasta/q file to get set of barcodes to cluster
+#barcodes: {'a', 'b', 'c'}, no repeats
+#ids: {'a': ['a1', 'a2'], 'b': ['b1', 'b2', 'b3']}, keys will not be empty
 def make_set(f):
     barcodes = set()
-    counts = {}
+    ids = {}
+    i = 0
+    start = time.time()
     with open(f, 'r') as f:
         for lab, seq, exp in readfx(f):
-            if seq in counts:
-                counts[seq] += 1
+            if seq.upper() in ids:
+                ids[seq.upper()] += [lab.split()[0]]
+                #ids[seq.upper()] += 1
             else:
-                counts[seq] = 1
+                ids[seq.upper()] = [lab.split()[0]]
+                #ids[seq.upper()] = 1
             barcodes |= {seq.upper()}
-    return barcodes, counts
+            i += 1
+            if time.time() - start > 1:
+                sys.stdout.write("\rRead %i sequences" %i)
+                sys.stdout.flush()
+                start = time.time()
+        sys.stdout.write("\rRead all %i sequences\n" %i)
+    return barcodes, ids
 
 #takes barcode, outputs set of all 1 off barcodes
+#{'a', 'b', 'c'}, no repeats
 def neighbors(barcode):
     barcodes = []
     for i in range(len(barcode)):
@@ -171,12 +205,12 @@ def minDistHist(centers):
     p.savefig(plot)
     p.close()
 
-def readsPCluster(clusters, counts):
+def readsPCluster(clusters, ids):
     n = []
     for cluster in clusters:
         x = 0
         for barcode in cluster:
-            x += counts[barcode]
+            x += len(ids[barcode])
         n.append(x)
     p = PdfPages(args.out.split('.')[0] + "_RCHist.pdf")
     plot = plt.figure()
