@@ -7,6 +7,8 @@ import matplotlib
 matplotlib.use('Agg')
 from matplotlib import pyplot as plt
 from matplotlib.backends.backend_pdf import PdfPages
+from matplotlib import cm
+import numpy as np
 
 """dfsCluster is a barcode clustering program designed to counteract noise
 from PCR errors which diffuses each original DNA tag into a cluster of
@@ -22,13 +24,11 @@ def main():
     barcodes, ids = make_set(args.i)
     clusters = cluster(barcodes)
     centers = center(clusters, ids)
+    if args.graph:
+        jackpottogram(clusters, ids)
+        #bcodePCluster(clusters)
+        #minDistHist(centers)
     print_cids(centers, clusters, ids, args.out+".cid")
-    #if args.rchist:
-    #    readsPCluster(clusters, ids)
-    #if args.bchist:
-    #    bcodePCluster(clusters)
-    #if args.mindist:
-    #    minDistHist(centers)
 
 #takes set of barcodes, outputs array of string array of clusters
 #No string array will be empty
@@ -50,7 +50,7 @@ def cluster(barcodes):
                     b.remove(x)
         clusters.append(c)
         i += 1
-        if time.time() - start > 1:
+        if time.time() - start > 1 and args.verbose:
             sys.stdout.write("\rGrouped %i clusters" %i)
             sys.stdout.flush()
             start = time.time()
@@ -86,7 +86,7 @@ def center(clusters, ids):
         check |= {center}
         centers.append(center)
         t += 1
-        if time.time() - start > 1:
+        if time.time() - start > 1 and args.verbose:
             sys.stdout.write("\rCentr'd %i clusters" %t)
             sys.stdout.flush()
             start = time.time()
@@ -107,7 +107,7 @@ def print_cids(centers, clusters, ids, f):
                 labs += ids[i]
             f.write("\n>" + centers.pop(0) + "\n" + str(labs))
             t += 1
-            if time.time() - start > 1:
+            if time.time() - start > 1 and args.verbose:
                 sys.stdout.write("\rWrote %i clusters" %t)
                 sys.stdout.flush()
                 start = time.time()
@@ -157,7 +157,7 @@ def make_set(f):
                 #ids[seq.upper()] = 1
             barcodes |= {seq.upper()}
             i += 1
-            if time.time() - start > 1:
+            if time.time() - start > 1 and args.verbose:
                 sys.stdout.write("\rRead %i sequences" %i)
                 sys.stdout.flush()
                 start = time.time()
@@ -205,23 +205,51 @@ def minDistHist(centers):
     p.savefig(plot)
     p.close()
 
-def readsPCluster(clusters, ids):
+def jackpottogram(clusters, ids):
     n = []
+    total = 0
     for cluster in clusters:
         x = 0
         for barcode in cluster:
             x += len(ids[barcode])
         n.append(x)
-    p = PdfPages(args.out.split('.')[0] + "_RCHist.pdf")
+        total += x
+    n = sorted(n, reverse = True)
+    even = float(total) / len(clusters)
     plot = plt.figure()
-    plt.title("Reads per Cluster")
-    plt.tick_params(axis = "both", labelsize = 8)
-    plt.xlabel("Reads")
-    plt.ylabel("Clusters")
-    plt.hist(n, 12543, color = 'blue', alpha = .6, cumulative = True, histtype = "step")
-    plt.xlim([0, 100000])
+
+    slices = []
+    labels = []
+    rest = 0
+    other = 0
+    for rest in range(len(n)):
+        per = 100 * (n[rest] / float(total))
+        if per > even or rest < 5:
+            slices.append(per)
+            labels.append('%.3f%% (%i reads)' %(per, n[rest]))
+        elif n[rest] == 1:
+            break
+        else:
+            other += n[rest]
+    other = 100 * (other / float(total))
+    slices.append(other)
+    labels.append('Other: %.3f%%' %other)
+    ones = 100 * ((len(n)-rest)/float(total))
+    slices.append(ones)
+    labels.append("1's: %.3f%%" %ones)
+
+    color = cm.Pastel2(np.linspace(0.,1.,len(slices)))
+
+    handles, text = plt.pie(slices, colors=color, startangle = 90)
+    for handle in handles:
+        handle.set_edgecolor('white')
+        handle.set_linewidth(.05)
+    plt.legend(handles, labels, title = "Largest Clusters", loc="upper right", prop={'size':8})
+    plt.axis('equal')
+    plt.title('Reads per Cluster by Percentage')
+    p = PdfPages(args.out.split('.')[0] + "_jkptogram.pdf")
     p.savefig(plot)
-    p.close()    
+    p.close()
 
 def bcodePCluster(clusters):
     p = PdfPages(args.out.split('.')[0] + "_BCHist.pdf")
@@ -273,12 +301,10 @@ if __name__ == '__main__':
         of A, C, T, G will be considered.")
     parser.add_argument("i", help = "fasta/q file containing sequences to be clustered")
     parser.add_argument("out", help = "output tag")
-    parser.add_argument("-md", "--mindist", help = "create hist of minimum hamming distances",
-        action = "store_true")
-    parser.add_argument("-rc", "--rchist", help = "create hist of reads per cluster",
-        action = "store_true")
-    parser.add_argument("-bc", "--bchist", help = "create hist of barcodes per cluster",
-        action = "store_true")
+    parser.add_argument("-g", "--graph", help = "creates graphs if specified", 
+        action = "store_true", default = False)
+    parser.add_argument("-v", "--verbose", help = "output progress information to terminal",
+        action = "store_true", default = False)
     if len(sys.argv) < 2:
         parser.print_help()
     else:
