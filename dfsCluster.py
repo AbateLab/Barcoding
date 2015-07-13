@@ -21,14 +21,59 @@ we assume:
 """
 
 def main():
-    barcodes, ids = make_set(args.i)
-    clusters = cluster(barcodes)
-    centers = center(clusters, ids)
+    ids = make_ids(args.i)
+    good, bad = cut_runts(ids)
+    clusters = cluster(set(good.keys()))
+    centers = center(clusters, good)
     if args.graph:
-        jackpottogram(clusters, ids)
+        jackpottogram(clusters, good)
         #bcodePCluster(clusters)
         #minDistHist(centers)
-    print_cids(centers, clusters, ids, args.out+".cid")
+    #print_cids(centers, clusters, good, args.out+".cid")
+
+#reads fasta/q file to get set of barcodes to cluster
+#barcodes: {'a', 'b', 'c'}, no repeats
+#ids: {'a': ['a1', 'a2'], 'b': ['b1', 'b2', 'b3']}, keys will not be empty
+def make_ids(f):
+    ids = {}
+    i = 0
+    start = time.time()
+    with open(f, 'r') as f:
+        for lab, seq, exp in readfx(f):
+            if seq.upper() in ids:
+                ids[seq.upper()] += [lab.split()[0]]
+                #ids[seq.upper()] += 1
+            else:
+                ids[seq.upper()] = [lab.split()[0]]
+                #ids[seq.upper()] = 1
+            i += 1
+            if time.time() - start > 1 and args.verbose:
+                sys.stdout.write("\rRead %i sequences" %i)
+                sys.stdout.flush()
+                start = time.time()
+        if args.verbose:
+            sys.stdout.write("\rRead all %i sequences\tFound %i unique sequences\n" %(i, len(ids)))
+    return ids
+
+def cut_runts(ids):
+    g = ids.copy()
+    b = {}
+    k = 0
+    c = 0
+    start = time.time()
+    for barcode in ids:
+        if len(ids[barcode]) <= args.cut:
+            b[barcode] = g.pop(barcode)
+            k -= 1
+            c += 1
+        k += 1
+        if time.time() - start > 1 and args.verbose:
+            sys.stdout.write("\rKept: %i\tCut: %i" %(k, c))
+            sys.stdout.flush()
+            start = time.time()
+    if args.verbose:
+        sys.stdout.write("\rKept: %i\tCut all %i barcodes smaller than %i\n" %(k, c, args.cut))
+    return g, b
 
 #takes set of barcodes, outputs array of string array of clusters
 #No string array will be empty
@@ -54,7 +99,8 @@ def cluster(barcodes):
             sys.stdout.write("\rGrouped %i clusters" %i)
             sys.stdout.flush()
             start = time.time()
-    sys.stdout.write("\rGrouped %i clusters\n" %i)
+    if args.verbose:
+        sys.stdout.write("\rGrouped %i clusters\n" %i)
     return clusters
 
 #takes an array of string array of clusters, and dictionary of unique barcode
@@ -90,7 +136,8 @@ def center(clusters, ids):
             sys.stdout.write("\rCentr'd %i clusters" %t)
             sys.stdout.flush()
             start = time.time()
-    sys.stdout.write("\rCentered all %i clusters\n" %t)
+    if args.verbose:
+        sys.stdout.write("\rCentered all %i clusters\n" %t)
     return centers
 
 def print_cids(centers, clusters, ids, f):
@@ -111,58 +158,12 @@ def print_cids(centers, clusters, ids, f):
                 sys.stdout.write("\rWrote %i clusters" %t)
                 sys.stdout.flush()
                 start = time.time()
-        sys.stdout.write("\rWrote all %i clusters\n" %t)
+        if args.verbose:
+            sys.stdout.write("\rWrote all %i clusters\n" %t)
         if centers:
             print "More centers than clusters"
         if clusters:
-            print "More clusters than centers"        
-
-"""#takes clusters, and centers, and appends center at the end of all labels of
-#barcodes in same cluster
-def label(clusters, centers):
-    #turn cluster's arrays into sets for faster membership checking
-    clusters = [set(i) for i in clusters]
-    with open(args.i, 'r') as f, open(args.out, 'w') as out:
-        for line in f:
-            l = line
-            seq = f.next()
-            if args.fastq:
-                f.next()
-                f.next()
-            if l:
-                #assign center to seq
-                tag = None
-                for i in range(len(clusters)):
-                    if seq.rstrip("\n") in clusters[i]:
-                        tag = centers[i]
-                        break
-                out.write(l[:-1] + " " + tag + "\n")
-                out.write(seq)"""
-
-#reads fasta/q file to get set of barcodes to cluster
-#barcodes: {'a', 'b', 'c'}, no repeats
-#ids: {'a': ['a1', 'a2'], 'b': ['b1', 'b2', 'b3']}, keys will not be empty
-def make_set(f):
-    barcodes = set()
-    ids = {}
-    i = 0
-    start = time.time()
-    with open(f, 'r') as f:
-        for lab, seq, exp in readfx(f):
-            if seq.upper() in ids:
-                ids[seq.upper()] += [lab.split()[0]]
-                #ids[seq.upper()] += 1
-            else:
-                ids[seq.upper()] = [lab.split()[0]]
-                #ids[seq.upper()] = 1
-            barcodes |= {seq.upper()}
-            i += 1
-            if time.time() - start > 1 and args.verbose:
-                sys.stdout.write("\rRead %i sequences" %i)
-                sys.stdout.flush()
-                start = time.time()
-        sys.stdout.write("\rRead all %i sequences\n" %i)
-    return barcodes, ids
+            print "More clusters than centers"
 
 #takes barcode, outputs set of all 1 off barcodes
 #{'a', 'b', 'c'}, no repeats
@@ -222,21 +223,24 @@ def jackpottogram(clusters, ids):
     labels = []
     rest = 0
     other = 0
+    o = 0
     for rest in range(len(n)):
         per = 100 * (n[rest] / float(total))
-        if per > even or rest < 5:
+        if per > float(even)/2 or rest < 7:
             slices.append(per)
             labels.append('%.3f%% (%i reads)' %(per, n[rest]))
         elif n[rest] == 1:
             break
         else:
             other += n[rest]
-    other = 100 * (other / float(total))
-    slices.append(other)
-    labels.append('Other: %.3f%%' %other)
-    ones = 100 * ((len(n)-rest)/float(total))
-    slices.append(ones)
-    labels.append("1's: %.3f%%" %ones)
+            o += 1
+    per = 100 * (other / float(total))
+    slices.append(per)
+    labels.append('Other %i Clusters:\n%.3f%% (%i reads)' %(o, per, other))
+    if rest + 1 != len(n):
+        ones = 100 * ((len(n)-rest)/float(total))
+        slices.append(ones)
+        labels.append("1's: %.3f%%" %ones)
 
     color = cm.Pastel2(np.linspace(0.,1.,len(slices)))
 
@@ -246,7 +250,7 @@ def jackpottogram(clusters, ids):
         handle.set_linewidth(.05)
     plt.legend(handles, labels, title = "Largest Clusters", loc="upper right", prop={'size':8})
     plt.axis('equal')
-    plt.title('Reads per Cluster by Percentage')
+    plt.title('Reads per Cluster by Percentage\nCut Barcodes <= %i' %args.cut)
     p = PdfPages(args.out.split('.')[0] + "_jkptogram.pdf")
     p.savefig(plot)
     p.close()
@@ -301,6 +305,8 @@ if __name__ == '__main__':
         of A, C, T, G will be considered.")
     parser.add_argument("i", help = "fasta/q file containing sequences to be clustered")
     parser.add_argument("out", help = "output tag")
+    parser.add_argument("-c", "--cut", help = "cut out barcodes with <= reads than this value",
+        type = float, default = 1)
     parser.add_argument("-g", "--graph", help = "creates graphs if specified", 
         action = "store_true", default = False)
     parser.add_argument("-v", "--verbose", help = "output progress information to terminal",

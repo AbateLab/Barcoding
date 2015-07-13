@@ -125,7 +125,8 @@ def evalq():
             if t%10000 == 0 and args.verbose:
                 sys.stdout.write("\rEval'd %i reads" %t)
                 sys.stdout.flush()
-        sys.stdout.write("\rEval'd all %i reads\n" %t)
+        if args.verbose:
+            sys.stdout.write("\rEval'd all %i reads\n" %t)
         rep.write("Input file: " + args.eval + "\nBase Cutoff: " + str(args.basecutoff) +
             "\nEval runtime (min): " + str((time.time() - start) / 60) + "\nN Compensation: " +
             str(args.basecomp) + "\nnewN: " + str(newN) + "\naCnt: " + str(aCnt) + "\ntCnt: " +
@@ -181,7 +182,8 @@ def filterq():
             if t%50000 == 0 and args.verbose:
                 sys.stdout.write("\rFltr'd %i reads" %t)
                 sys.stdout.flush()
-        sys.stdout.write("\rFltr'd all %i reads\n" %t)
+        if args.verbose:
+            sys.stdout.write("\rFltr'd all %i reads\n" %t)
         fopts = ["Expected Incorrect Bases", "Max Allowable Phred", "Percent Qualifying Bases"]
         rep.write("\n\nFilter to '" + str(args.filter) + "'\nFilter option: " + fopts[args.fopt] +
             "\nFilter runtime (min): " + str((time.time() - start) / 60) +
