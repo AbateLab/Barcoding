@@ -25,11 +25,12 @@ def main():
     good, bad = cut_runts(ids)
     clusters = cluster(set(good.keys()))
     centers = center(clusters, good)
+    cids = make_cids(clusters, centers, good)
     if args.graph:
-        jackpottogram(clusters, good)
+        jackpottogram(cids)
         #bcodePCluster(clusters)
         #minDistHist(centers)
-    #print_cids(centers, clusters, good, args.out+".cid")
+    print_cids(cids, args.out+".cid")
 
 #reads fasta/q file to get set of barcodes to cluster
 #barcodes: {'a', 'b', 'c'}, no repeats
@@ -80,7 +81,7 @@ def cut_runts(ids):
 #[["a", "b", "c"], ["d"], ["e", f"], ["g", "h", "i", "j"]]
 def cluster(barcodes):
     clusters = []
-    b = barcodes
+    b = barcodes.copy()
     i = 0
     start = time.time()
     while b:
@@ -140,30 +141,41 @@ def center(clusters, ids):
         sys.stdout.write("\rCentered all %i clusters\n" %t)
     return centers
 
-def print_cids(centers, clusters, ids, f):
-    with open(f, 'w') as f:
-        labs  = []
-        t = 1
-        start = time.time()
-        for i in clusters.pop(0):
-            labs += ids[i]
-        f.write(">" + centers.pop(0) + "\n" + str(labs))
-        while centers and clusters:
-            labs  = []
-            for i in clusters.pop(0):
-                labs += ids[i]
-            f.write("\n>" + centers.pop(0) + "\n" + str(labs))
-            t += 1
+def make_cids(clusters, centers, ids):
+    cids = {}
+    i = 0
+    c = 0
+    start = time.time()
+    for cn, cl in zip(centers, clusters):
+        cids[cn] = []
+        for barcode in cl:
+            cids[cn] += ids[barcode]
+            i += len(ids[barcode])
+        c += 1
+        if time.time() - start > 1 and args.verbose:
+            sys.stdout.write("\rGrouped %i ids into %i centers" %(i, c))
+            sys.stdout.flush()
+            start = time.time()
+    if args.verbose:
+        sys.stdout.write("\rGrouped all %i ids into %i centers\n" %(i, c))
+    return cids
+
+def print_cids(cids, f):
+    i = 1
+    start = time.time()
+    with open(f, 'w') as o:
+        items = cids.items()
+        t1, t2 = items.pop()
+        o.write(">%s\n%s" %(t1, t2))
+        for t in cids.iteritems():
+            o.write("\n>%s\n%s" %(t[0], t[1]))
+            i += 1
             if time.time() - start > 1 and args.verbose:
-                sys.stdout.write("\rWrote %i clusters" %t)
+                sys.stdout.write("\rWrote %i entries to %s" %(i, f))
                 sys.stdout.flush()
                 start = time.time()
-        if args.verbose:
-            sys.stdout.write("\rWrote all %i clusters\n" %t)
-        if centers:
-            print "More centers than clusters"
-        if clusters:
-            print "More clusters than centers"
+    if args.verbose:
+        sys.stdout.write("\rWrote all %i entries to %s" %(i, f))
 
 #takes barcode, outputs set of all 1 off barcodes
 #{'a', 'b', 'c'}, no repeats
@@ -206,17 +218,11 @@ def minDistHist(centers):
     p.savefig(plot)
     p.close()
 
-def jackpottogram(clusters, ids):
-    n = []
-    total = 0
-    for cluster in clusters:
-        x = 0
-        for barcode in cluster:
-            x += len(ids[barcode])
-        n.append(x)
-        total += x
+def jackpottogram(cids):
+    n = [len(l) for l in cids.values()]
+    total = sum(n)
     n = sorted(n, reverse = True)
-    even = float(total) / len(clusters)
+    even = float(total) / len(cids)
     plot = plt.figure()
 
     slices = []
