@@ -24,7 +24,7 @@ To assist with choosing the right parameters for filtering, replacing, and trimm
 ###dfsCluster.py:
 Intended to cluster pcr output sequences into groups of sequences all originating from a unique pcr input sequence
 
-Still in the works as to UI, although it will print in terminal the clusters it finds. As the name suggests, dfsCluster employs a dfs over a hamming space, but can only visit nodes specified by pcr output sequences. This should work because
+As the name suggests, dfsCluster employs a dfs over a hamming space, but can only visit nodes specified by pcr output sequences. This should work because
 
 1. PCR in the overwhelming majority of the time will not make more than 1 error per sequence
 2. The hamming space is large enough, and the error rate is low enough, that random walks originating from random points in the space will not ever come closer than 2 hamming distance of another path.
