@@ -28,7 +28,7 @@ def main():
     cids = make_cids(clusters, centers, good)
     if args.graph:
         jackpottogram(cids)
-        #bcodePCluster(clusters)
+        rpc(cids)
         #minDistHist(centers)
     print_cids(cids, args.out+".cid")
 
@@ -175,7 +175,7 @@ def print_cids(cids, f):
                 sys.stdout.flush()
                 start = time.time()
     if args.verbose:
-        sys.stdout.write("\rWrote all %i entries to %s" %(i, f))
+        sys.stdout.write("\rWrote all %i entries to %s\n" %(i, f))
 
 #takes barcode, outputs set of all 1 off barcodes
 #{'a', 'b', 'c'}, no repeats
@@ -257,21 +257,92 @@ def jackpottogram(cids):
     plt.legend(handles, labels, title = "Largest Clusters", loc="upper right", prop={'size':8})
     plt.axis('equal')
     plt.title('Reads per Cluster by Percentage\nCut Barcodes <= %i' %args.cut)
-    p = PdfPages(args.out.split('.')[0] + "_jkptogram.pdf")
+    p = PdfPages(args.out.split('.')[0] + "_jkp.pdf")
     p.savefig(plot)
     p.close()
 
-def bcodePCluster(clusters):
-    p = PdfPages(args.out.split('.')[0] + "_BCHist.pdf")
-    plot = plt.figure()
-    plt.title("Barcodes per Cluster")
+def rpc(cids):
+    n = sorted([len(i) for i in cids.values()])
+
+    #histogram binned by cluster size
+    hist = plt.figure()
+    plt.title("Reads per Cluster")
     plt.tick_params(axis = "both", labelsize = 8)
-    plt.xlabel("Barcodes")
+    plt.xlabel("Cluster Size in Reads")
     plt.ylabel("Clusters")
-    plt.xlim([0, 100000])
-    plt.hist([len(cluster) for cluster in clusters], 257, color = 'blue', alpha = .6)
-    p.savefig(plot)
+    plt.hist(n, 155, color = 'blue', alpha = .6)
+
+    #cut outliers (1.5 * inter quartile range)
+    iqr = n[(3*len(n) + 3) / 4] - n[(len(n) + 1) / 4]
+    lower = n[(len(n) + 1) / 4] - 1.5 * iqr
+    upper = n[(3*len(n) + 3) / 4] + 1.5 * iqr
+    f = [count for count in n if count > lower and count < upper]
+    
+    #histogram w/o outliers
+    fhist = plt.figure()
+    plt.title("Reads per Cluster w/o Outliers")
+    plt.tick_params(axis = "both", labelsize = 8)
+    plt.xlabel("Cluster Size in Reads between %i and %i"%(f[0], f[-1]))
+    plt.ylabel("Clusters")
+    plt.hist(f, 55, color = 'blue', alpha = .6)
+
+    #pie chart of number of different sized clusters
+    slices, labels = pie_prep(n)
+    pie = plt.figure()
+    color = cm.Pastel2(np.linspace(0.,1.,len(slices)))
+    handles, text = plt.pie(slices[::-1], colors=color, startangle = 90)
+    for handle in handles:
+        handle.set_edgecolor('white')
+        handle.set_linewidth(.05)
+    plt.legend(handles, labels[::-1], title = "Cluster Sizes", loc="upper right", 
+        prop={'size':8})
+    plt.axis('equal')
+    plt.title('Number of Clusters at each Size')
+
+    #cutoff pie chart
+    slices, labels = pie_prep(f)
+    fpie = plt.figure()
+    color = cm.Pastel2(np.linspace(0.,1.,len(slices)))
+    handles, text = plt.pie(slices[::-1], colors=color, startangle = 90)
+    for handle in handles:
+        handle.set_edgecolor('white')
+        handle.set_linewidth(.05)
+    plt.legend(handles, labels[::-1], title = "Cluster Sizes", loc="upper right", 
+        prop={'size':8})
+    plt.axis('equal')
+    plt.title('Number of Clusters at each Size between %i and %i' %(f[0], f[-1]))
+
+    p = PdfPages(args.out.split('.')[0] + "_rpc.pdf")
+    p.savefig(hist)
+    p.savefig(fhist)
+    p.savefig(pie)
+    p.savefig(fpie)
     p.close()
+
+def pie_prep(n):
+    grp = 5
+    tmp = [10000, 5000, 1000, 500, 250, 100, 50, 25, 10, 5]
+    for x in range(n[-1]/27, n[-1]/5):
+        for t in tmp:
+            if x % t == 0:
+                grp = x
+                break
+            elif grp % t == 0:
+                break
+    slices = []
+    labels = []
+    count = 0
+    slc = 1
+    for cl in n:
+        if cl > grp * slc:
+            slices.append(count)
+            labels.append("%i - %i reads: %i" %(grp * (slc-1), grp * slc, count))
+            count = 0
+            slc += 1
+        count += 1
+    slices.append(count)
+    labels.append("%i - %i reads: %i" %(grp * (slc-1), n[-1], count))
+    return slices, labels
 
 #ripped from https://github.com/lh3/readfq
 def readfx(fp): # this is a generator function
