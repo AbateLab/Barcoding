@@ -29,7 +29,7 @@ def main():
     if args.graph:
         jackpottogram(cids)
         rpc(cids)
-        #minDistHist(centers)
+        minDistHist(centers)
     print_cids(cids, args.out+".cid")
 
 #reads fasta/q file to get set of barcodes to cluster
@@ -191,29 +191,36 @@ def neighbors(barcode):
 
 #graphs min distances to another "center" for all centers
 def minDistHist(centers):
-    d = []
     m = []
-    for i in range(len(centers)):
-        x = []
-        tmp = sys.maxint
-        for j in range(len(centers)):
-            if i == j:
-                x.append(sys.maxint)
-            elif i < j:
-                x.append(sum(c1 != c2 for c1, c2 in zip(centers[i], centers[j])))
-            else:
-                x.append(d[j][i])
-            if x[j] < tmp:
-                tmp = x[j]
-        d.append(x)
-        m.append(tmp)
-    p = PdfPages(args.out.split('.')[0] + "_minDist.pdf")
+    t = 0
+    start = time.time()
+    for center in centers:
+        mhd = len(center)
+        for cn in centers:
+            dif = 0
+            if cn != center:
+                for a, b in zip(center, cn):
+                    if a != b:
+                        dif += 1
+                    if dif >= mhd:
+                        break
+                mhd = dif
+        m.append(mhd)
+        t += 1
+        if time.time() - start > 1 and args.verbose:
+            sys.stdout.write("\rFound Min Hamming Distance for %i centers" %t)
+            sys.stdout.flush()
+            start = time.time()
+    if args.verbose:
+        sys.stdout.write("\rFound All Min Hamming Distance for %i centers\n" %t)
+
+    p = PdfPages(args.out.split('.')[0] + "_mhd.pdf")
     plot = plt.figure()
-    plt.title("Minimum Distances Between Centers")
+    plt.title("Minimum Hamming Distances Between Centers")
     plt.tick_params(axis = "both", labelsize = 8)
-    plt.xlabel("Minimum Hamming Distance to Another Center")
-    plt.ylabel("Number of Centers")
-    plt.hist(m, len(centers[0])/3, color = 'blue', alpha = .6)
+    plt.xlabel("Minimum Hamming Distance")
+    plt.ylabel("Centers")
+    plt.hist(m, bins = range(0, len(centers[0])), align = 'left', color = 'blue', alpha = .6)
     plt.xlim(0, len(centers[0]))
     p.savefig(plot)
     p.close()
@@ -284,7 +291,7 @@ def rpc(cids):
     plt.tick_params(axis = "both", labelsize = 8)
     plt.xlabel("Cluster Size in Reads between %i and %i"%(f[0], f[-1]))
     plt.ylabel("Clusters")
-    plt.hist(f, 55, color = 'blue', alpha = .6)
+    plt.hist(f, 51, color = 'blue', alpha = .6)
 
     #pie chart of number of different sized clusters
     slices, labels = pie_prep(n)
