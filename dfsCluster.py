@@ -61,19 +61,22 @@ def cut_runts(ids):
     b = {}
     k = 0
     c = 0
+    cr = 0
     start = time.time()
     for barcode in ids:
         if len(ids[barcode]) <= args.cut:
             b[barcode] = g.pop(barcode)
             k -= 1
             c += 1
+            cr += len(ids[barcode])
         k += 1
         if time.time() - start > 1 and args.verbose:
             sys.stdout.write("\rKept: %i\tCut: %i" %(k, c))
             sys.stdout.flush()
             start = time.time()
     if args.verbose:
-        sys.stdout.write("\rKept: %i\tCut all %i barcodes smaller than %i\n" %(k, c, args.cut))
+        sys.stdout.write("\rKept: %i\tCut all %i barcodes smaller than %i (%i sequences)\n"
+            %(k, c, args.cut, cr))
     return g, b
 
 #takes set of barcodes, outputs array of string array of clusters
@@ -167,8 +170,8 @@ def print_cids(cids, f):
         items = cids.items()
         t1, t2 = items.pop()
         o.write(">%s\n%s" %(t1, t2))
-        for t in cids.iteritems():
-            o.write("\n>%s\n%s" %(t[0], t[1]))
+        for t1, t2 in items:
+            o.write("\n>%s\n%s" %(t1, t2))
             i += 1
             if time.time() - start > 1 and args.verbose:
                 sys.stdout.write("\rWrote %i entries to %s" %(i, f))
@@ -386,7 +389,7 @@ def readfx(fp): # this is a generator function
 if __name__ == '__main__':
     parser = argparse.ArgumentParser(description="outputs a fasta file of input with group identity\
         appended to labels, reads in fasta file must be same length, and only reads composed solely\
-        of A, C, T, G will be considered.")
+        of A, C, T, G will be considered.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("i", help = "fasta/q file containing sequences to be clustered")
     parser.add_argument("out", help = "output tag")
     parser.add_argument("-c", "--cut", help = "cut out barcodes with <= reads than this value",
