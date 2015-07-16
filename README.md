@@ -38,9 +38,9 @@ dfsCluster reads a fasta/q file of reads (nonunique), groups reads into barcode 
 \>"center2"  
 [id10, id11, ...]
 
-It is recommended to run with -v (verbose), or at least save the terminal output to a file, because information such as #unique barcodes, #barcodes cut, %reads cut, #clusters formed will be printed.
+It is recommended to run with -v (verbose), or at least save the terminal output to a file, because information such as #unique barcodes, #barcodes cut, %reads cut, #clusters formed will be offered through it.
 
-TODO:Everything
+TODO:Testing Logic (pcrErrorSimulation)
 
 ###jackpotQC.py:
 jackpotQC provides visualizations for "jackpotting" of barcode groups, or the quality of PCR amplifying different sequences in hugely uneven quantities. Input a fasta/q file of sequences, and jackpottogram will create a histogram, and a pie chart based on the number of copies of each unique sequence.
