@@ -17,7 +17,21 @@ def main():
     u = len(ccounts.keys())
     l = len(ccounts.keys()[0])
     j = 0
-    for i in range(args.cyc):
+    for i in range(30):
+        ccounts, t, u, j = stats_cyc(ccounts, args.err, args.cpr, i+1, t, u, j, l)
+    ccounts = sample(ccounts, int(t * .001), t)
+    t = sum(ccounts.values())
+    u = len(ccounts.keys())
+    l = len(ccounts.keys()[0])
+    j = 0    
+    for i in range(15):
+        ccounts, t, u, j = stats_cyc(ccounts, args.err, args.cpr, i+1, t, u, j, l)
+    ccounts = sample(ccounts, int(t * .1), t)
+    t = sum(ccounts.values())
+    u = len(ccounts.keys())
+    l = len(ccounts.keys()[0])
+    j = 0
+    for i in range(7):
         ccounts, t, u, j = stats_cyc(ccounts, args.err, args.cpr, i+1, t, u, j, l)
     ccounts = sample(ccounts, 10000000, t)
     cids = ccounts2cids(ccounts)
@@ -124,15 +138,21 @@ def sample(ccounts, num, tot):
     if num >= tot:
         return ccounts
     samp = random.sample(xrange(tot), num)
-    samp = sorted(samp)
+    samp.sort(reverse = True)
     start = time.time()
     items = ccounts.items()
+    tmp = samp.pop()
     for center, count in items:
+        if not samp:
+            break
         index += count
         i = 0
-        while i < len(samp) and samp[i] < index:
+        while tmp < index:
             i += 1
-        samp = samp[i:]
+            if samp:
+                tmp = samp.pop()
+            else:
+                break
         if i > 0:
             c[center] = i
         if time.time() - start > 1 and args.verbose:
