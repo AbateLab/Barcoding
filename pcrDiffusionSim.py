@@ -13,16 +13,15 @@ def main():
     ccounts = initialize(args.len, args.num)
     if args.graph:
         minDistHist(ccounts.keys())
-    start = time.time()
     t = sum(ccounts.values())
     u = len(ccounts.keys())
     l = len(ccounts.keys()[0])
+    j = 0
     for i in range(args.cyc):
-        ccounts, t, u = stats_cyc(ccounts, args.err, args.cpr, i+1, t, u, l)
-    print "PCR runtime: %i" %(time.time() - start)
-    #ccounts = sample(ccounts, 10000000, t)
-    #cids = ccounts2cids(ccounts)
-    #cids2fasta(cids, args.out+".fasta")
+        ccounts, t, u, j = stats_cyc(ccounts, args.err, args.cpr, i+1, t, u, j, l)
+    ccounts = sample(ccounts, 10000000, t)
+    cids = ccounts2cids(ccounts)
+    cids2fasta(cids, args.out+".fasta")
 
 def initialize(l, n):
     ccounts = {}
@@ -46,9 +45,8 @@ def initialize(l, n):
             f.write("\n" + barcode)
     return ccounts
 
-def stats_cyc(ccounts, er, cr, cyc, t, u, l):
+def stats_cyc(ccounts, er, cr, cyc, t, u, j, l):
     c = ccounts.copy()
-    jumps = []
     start = time.time()
     for center, count in c.items():
         if count > args.lnlaw:
@@ -86,7 +84,7 @@ def stats_cyc(ccounts, er, cr, cyc, t, u, l):
                         c[new] = 1
                         u += 1
                     if num_err >= 2:
-                        jumps.append((center, new))
+                        j += 1
                     t += 1
                 count -= num
                 num_err += 1 if num_err < l else 0
@@ -110,47 +108,39 @@ def stats_cyc(ccounts, er, cr, cyc, t, u, l):
                         c[new] = 1
                         u += 1
                     if d >= 2:
-                        jumps.append((center, new))
+                        j += 1
                     t += 1
         if time.time() - start > 1 and args.verbose:
-            sys.stdout.write("\rCycle: %i\tJumps: %i\tUnique: %i\tTotal: %i" %(cyc, len(jumps), u, t))
+            sys.stdout.write("\rCycle: %i\tJumps: %i\tUnique: %i\tTotal: %i" %(cyc, j, u, t))
             sys.stdout.flush()
             start = time.time()
     if args.verbose:
-        sys.stdout.write("\rCycle: %i\tJumps: %i\tUnique: %i\tTotal: %i\n" %(cyc, len(jumps), u, t))
-        #sys.stdout.write("\t%i replications with >= 2 errors\n" %len(jumps))
-        #for s1, s2 in jumps:
-        #    sys.stdout.write("\t  %s -> %s\n" %(s1, s2))
-    return c, t, u
+        sys.stdout.write("\rCycle: %i\tJumps: %i\tUnique: %i\tTotal: %i\n" %(cyc, j, u, t))
+    return c, t, u, j
 
 def sample(ccounts, num, tot):
     index = 0
     c = {}
-    start = time.time()
     if num >= tot:
         return ccounts
-    if args.verbose:
-        start = time.time()
-        sys.stdout.write("Picking %i numbers" %num)
-        sys.stdout.flush()
     samp = random.sample(xrange(tot), num)
     samp = sorted(samp)
-    if args.verbose:
-        sys.stdout.write("\rPicked %i numbers (%i)\n" %(num, (time.time()-start)))    
     start = time.time()
-    for center, count in ccounts.items():
+    items = ccounts.items()
+    for center, count in items:
         index += count
         i = 0
         while i < len(samp) and samp[i] < index:
             i += 1
         samp = samp[i:]
-        c[center] = i
+        if i > 0:
+            c[center] = i
         if time.time() - start > 1 and args.verbose:
             sys.stdout.write("\rSampled %i reads" %(num - len(samp)))
             sys.stdout.flush()
             start = time.time()
     if args.verbose:
-        sys.stdout.write("\rSampled %i reads" %(num - len(samp)))
+        sys.stdout.write("\rSampled %i reads\n" %(num - len(samp)))
     return c
 
 
@@ -176,7 +166,7 @@ def cids2fasta(cids, f):
     start = time.time()
     with open(f, 'w') as f:
         items = cids.items()
-        center, i = items[0][0], items[0][1].pop(0)
+        center, i = items[0][0], items[0][1].pop()
         f.write(">%i\n%s" %(i, center))
         n = 1
         for center, ids in items:
