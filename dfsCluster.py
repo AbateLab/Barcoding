@@ -282,20 +282,6 @@ def rpc(cids):
     plt.ylabel("Clusters")
     plt.hist(n, 155, color = 'blue', alpha = .6)
 
-    #cut outliers (1.5 * inter quartile range)
-    iqr = n[(3*len(n) + 3) / 4] - n[(len(n) + 1) / 4]
-    lower = n[(len(n) + 1) / 4] - 1.5 * iqr
-    upper = n[(3*len(n) + 3) / 4] + 1.5 * iqr
-    f = [count for count in n if count > lower and count < upper]
-    
-    #histogram w/o outliers
-    fhist = plt.figure()
-    plt.title("Reads per Cluster w/o Outliers")
-    plt.tick_params(axis = "both", labelsize = 8)
-    plt.xlabel("Cluster Size in Reads between %i and %i"%(f[0], f[-1]))
-    plt.ylabel("Clusters")
-    plt.hist(f, 51, color = 'blue', alpha = .6)
-
     #pie chart of number of different sized clusters
     slices, labels = pie_prep(n)
     pie = plt.figure()
@@ -309,24 +295,41 @@ def rpc(cids):
     plt.axis('equal')
     plt.title('Number of Clusters at each Size')
 
-    #cutoff pie chart
-    slices, labels = pie_prep(f)
-    fpie = plt.figure()
-    color = cm.Pastel2(np.linspace(0.,1.,len(slices)))
-    handles, text = plt.pie(slices[::-1], colors=color, startangle = 90)
-    for handle in handles:
-        handle.set_edgecolor('white')
-        handle.set_linewidth(.05)
-    plt.legend(handles, labels[::-1], title = "Cluster Sizes", loc="upper right", 
-        prop={'size':8})
-    plt.axis('equal')
-    plt.title('Number of Clusters at each Size between %i and %i' %(f[0], f[-1]))
+    #cut outliers (1.5 * inter quartile range)
+    if len(n) > 4:
+        iqr = n[(3*len(n) + 3) / 4] - n[(len(n) + 1) / 4]
+        lower = n[(len(n) + 1) / 4] - 1.5 * iqr
+        upper = n[(3*len(n) + 3) / 4] + 1.5 * iqr
+        f = [count for count in n if count > lower and count < upper]
+    
+        #histogram w/o outliers
+        fhist = plt.figure()
+        plt.title("Reads per Cluster w/o Outliers")
+        plt.tick_params(axis = "both", labelsize = 8)
+        plt.xlabel("Cluster Size in Reads between %i and %i"%(f[0], f[-1]))
+        plt.ylabel("Clusters")
+        plt.hist(f, 51, color = 'blue', alpha = .6)
+
+        #cutoff pie chart
+        slices, labels = pie_prep(f)
+        fpie = plt.figure()
+        color = cm.Pastel2(np.linspace(0.,1.,len(slices)))
+        handles, text = plt.pie(slices[::-1], colors=color, startangle = 90)
+        for handle in handles:
+            handle.set_edgecolor('white')
+            handle.set_linewidth(.05)
+        plt.legend(handles, labels[::-1], title = "Cluster Sizes", loc="upper right", 
+            prop={'size':8})
+        plt.axis('equal')
+        plt.title('Number of Clusters at each Size between %i and %i' %(f[0], f[-1]))
 
     p = PdfPages(args.out.split('.')[0] + "_rpc.pdf")
     p.savefig(hist)
-    p.savefig(fhist)
+    if len(n) > 4:
+        p.savefig(fhist)
     p.savefig(pie)
-    p.savefig(fpie)
+    if len(n) > 4:
+        p.savefig(fpie)
     p.close()
 
 def pie_prep(n):
