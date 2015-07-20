@@ -20,9 +20,9 @@ def main():
     for i in range(args.cyc):
         ccounts, t, u = stats_cyc(ccounts, args.err, args.cpr, i+1, t, u, l)
     print "PCR runtime: %i" %(time.time() - start)
-    ccounts = sample(ccounts, 10000000, t)
-    cids = ccounts2cids(ccounts)
-    cids2fasta(cids, args.out+".fasta")
+    #ccounts = sample(ccounts, 10000000, t)
+    #cids = ccounts2cids(ccounts)
+    #cids2fasta(cids, args.out+".fasta")
 
 def initialize(l, n):
     ccounts = {}
