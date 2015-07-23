@@ -40,6 +40,13 @@ dfsCluster reads a fasta/q file of reads (nonunique), groups reads into barcode 
 
 It is recommended to run with -v (verbose), or at least save the terminal output to a file, because information such as #unique barcodes, #barcodes cut, %reads cut, #clusters formed will be offered through it.
 
+###pcrDiffusionSim.py:
+Intended to provide a control dataset on which to test dfsCluster. Specify how many initial sequences to start with, and how many cycles of PCR to run those initial sequences through, and how many sequences to sample after PCR, and pcrDiffusionSim.py will output a fasta format file of those sequences.
+
+It is easily modifiable to support other workflows, such as PCR, sample interleaves, or specific starting sequences. How many cycles to run and what percent to sample is limited by available memory. Also, to speed things up, pcrDiffusionSim uses the law of large numbers to approximate how many errors would occur after a certain sequence exedes a set number of copies. This set value can be modified, and defaults to 1000.
+
+pcrDiffusionSim will reproduce jackpotting behaviour.
+
 ###jackpotQC.py:
 jackpotQC provides visualizations for "jackpotting" of barcode groups, or the quality of PCR amplifying different sequences in hugely uneven quantities. Input a fasta/q file of sequences, and jackpottogram will create a histogram, and a pie chart based on the number of copies of each unique sequence.
 
