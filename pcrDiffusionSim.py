@@ -17,23 +17,9 @@ def main():
     u = len(ccounts.keys())
     l = len(ccounts.keys()[0])
     j = 0
-    for i in range(30):
+    for i in range(args.cyc):
         ccounts, t, u, j = stats_cyc(ccounts, args.err, args.cpr, i+1, t, u, j, l)
-    ccounts = sample(ccounts, int(t * .001), t)
-    t = sum(ccounts.values())
-    u = len(ccounts.keys())
-    l = len(ccounts.keys()[0])
-    j = 0    
-    for i in range(15):
-        ccounts, t, u, j = stats_cyc(ccounts, args.err, args.cpr, i+1, t, u, j, l)
-    ccounts = sample(ccounts, int(t * .1), t)
-    t = sum(ccounts.values())
-    u = len(ccounts.keys())
-    l = len(ccounts.keys()[0])
-    j = 0
-    for i in range(7):
-        ccounts, t, u, j = stats_cyc(ccounts, args.err, args.cpr, i+1, t, u, j, l)
-    ccounts = sample(ccounts, 10000000, t)
+    ccounts = sample(ccounts, args.sample, t)
     cids = ccounts2cids(ccounts)
     cids2fasta(cids, args.out+".fasta")
 
@@ -260,7 +246,8 @@ if __name__ == '__main__':
         starts using statistics to speed up simulation. Will automatically partition away expected\
         number of sequences to be copied, copied without error, with one error, so on", type = int,
         default = 1000)
-
+    parser.add_argument("-s", "--sample", help = "number of sequences to be kept for output", type = int,
+        default = 10000000)
     parser.add_argument("-g", "--graph", help = "creates graphs if specified", 
         action = "store_true", default = False)
     parser.add_argument("-v", "--verbose", help = "output progress information to terminal",
