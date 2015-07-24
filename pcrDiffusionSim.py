@@ -13,12 +13,7 @@ def main():
     ccounts = initialize(args.len, args.num)
     if args.graph:
         minDistHist(ccounts.keys())
-    t = sum(ccounts.values())
-    u = len(ccounts.keys())
-    l = len(ccounts.keys()[0])
-    j = 0
-    for i in range(args.cyc):
-        ccounts, t, u, j = stats_cyc(ccounts, args.err, args.cpr, i+1, t, u, j, l)
+    pcr(ccounts, args.cyc)
     ccounts = sample(ccounts, args.sample, t)
     cids = ccounts2cids(ccounts)
     cids2fasta(cids, args.out+".fasta")
@@ -44,6 +39,14 @@ def initialize(l, n):
         for barcode in keys:
             f.write("\n" + barcode)
     return ccounts
+
+def pcr(ccounts, cycles):
+    t = sum(ccounts.values())
+    u = len(ccounts.keys())
+    l = len(ccounts.keys()[0])
+    j = 0
+    for i in range(cycles):
+        ccounts, t, u, j = stats_cyc(ccounts, args.err, args.cpr, i+1, t, u, j, l)
 
 def stats_cyc(ccounts, er, cr, cyc, t, u, j, l):
     c = ccounts.copy()
