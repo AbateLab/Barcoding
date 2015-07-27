@@ -64,7 +64,7 @@ def cut_runts(ids):
     cr = 0
     start = time.time()
     for barcode in ids:
-        if len(ids[barcode]) <= args.cut:
+        if len(ids[barcode]) <= args.cutreads:
             b[barcode] = g.pop(barcode)
             k -= 1
             c += 1
@@ -76,7 +76,7 @@ def cut_runts(ids):
             start = time.time()
     if args.verbose:
         sys.stdout.write("\rKept: %i\tCut all %i barcodes smaller than %i (%i sequences)\n"
-            %(k, c, args.cut, cr))
+            %(k, c, args.cutreads, cr))
     return g, b
 
 #takes set of barcodes, outputs array of string array of clusters
@@ -266,7 +266,7 @@ def jackpottogram(cids):
         handle.set_linewidth(.05)
     plt.legend(handles, labels, title = "Largest Clusters", loc="upper right", prop={'size':8})
     plt.axis('equal')
-    plt.title('Reads per Cluster by Percentage\nCut Barcodes <= %i' %args.cut)
+    plt.title('Reads per Cluster by Percentage\nCut Barcodes <= %i' %args.cutreads)
     p = PdfPages(args.out.split('.')[0] + "_jkp.pdf")
     p.savefig(plot)
     p.close()
@@ -395,8 +395,10 @@ if __name__ == '__main__':
         of A, C, T, G will be considered.", formatter_class=argparse.ArgumentDefaultsHelpFormatter)
     parser.add_argument("i", help = "fasta/q file containing sequences to be clustered")
     parser.add_argument("out", help = "output tag")
-    parser.add_argument("-c", "--cut", help = "cut out barcodes with <= reads than this value",
+    parser.add_argument("-cr", "--cutreads", help = "cut out barcodes with <= reads than this value",
         type = float, default = 1)
+    parser.add_argument("-cc", "--cutcollisions", help = "cut out clusters which probably include more\
+        than one original barcode", action = "store_true", default = False)
     parser.add_argument("-g", "--graph", help = "creates graphs if specified", 
         action = "store_true", default = False)
     parser.add_argument("-v", "--verbose", help = "output progress information to terminal",

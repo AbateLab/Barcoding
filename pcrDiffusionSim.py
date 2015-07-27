@@ -14,7 +14,7 @@ def main():
     if args.graph:
         minDistHist(ccounts.keys())
     pcr(ccounts, args.cyc)
-    ccounts = sample(ccounts, args.sample, t)
+    ccounts = sample(ccounts, args.sample)
     cids = ccounts2cids(ccounts)
     cids2fasta(cids, args.out+".fasta")
 
@@ -121,7 +121,8 @@ def stats_cyc(ccounts, er, cr, cyc, t, u, j, l):
         sys.stdout.write("\rCycle: %i\tJumps: %i\tUnique: %i\tTotal: %i\n" %(cyc, j, u, t))
     return c, t, u, j
 
-def sample(ccounts, num, tot):
+def sample(ccounts, num):
+    tot = sum(ccounts.values())
     index = 0
     c = {}
     if num >= tot:
