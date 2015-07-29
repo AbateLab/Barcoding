@@ -166,11 +166,11 @@ def ccounts2cids(ccounts):
             i += 1
         cids[center] = ids
         if time.time() - start > 1 and args.verbose:
-            sys.stdout.write("\rId'd %i sequences" %i)
+            sys.stdout.write("\rId'd %i sequences" %(i+1))
             sys.stdout.flush()
             start = time.time()
     if args.verbose:
-        sys.stdout.write("\rId'd all %i sequences\n" %i)
+        sys.stdout.write("\rId'd all %i sequences\n" %(i+1))
     return cids
 
 def cids2fasta(cids, f):
@@ -185,11 +185,11 @@ def cids2fasta(cids, f):
                 f.write("\n>%i\n%s" %(i, center))
                 n += 1
             if time.time() - start > 1 and args.verbose:
-                sys.stdout.write("\rWrote %i sequences" %n)
+                sys.stdout.write("\rWrote %i sequences" %(n+1))
                 sys.stdout.flush()
                 start = time.time()
     if args.verbose:
-        sys.stdout.write("\rWrote all %i sequences\n" %n)
+        sys.stdout.write("\rWrote all %i sequences\n" %(n+1))
 
 def minDistHist(centers):
     m = []
