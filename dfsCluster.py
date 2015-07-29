@@ -28,9 +28,9 @@ def main():
     cids = make_cids(clusters, centers, good)
     if args.graph:
         jackpottogram(cids)
-        rpc(cids)
-        minDistHist(centers)
-    print_cids(cids, args.out+".cid")
+        #rpc(cids)
+        #minDistHist(centers)
+    #print_cids(cids, args.out+".cid")
 
 #reads fasta/q file to get set of barcodes to cluster
 #barcodes: {'a', 'b', 'c'}, no repeats
@@ -49,11 +49,12 @@ def make_ids(f):
                 #ids[seq.upper()] = 1
             i += 1
             if time.time() - start > 1 and args.verbose:
-                sys.stdout.write("\rRead %i sequences" %i)
+                sys.stdout.write("\rRead {:,} sequences".format(i))
                 sys.stdout.flush()
                 start = time.time()
         if args.verbose:
-            sys.stdout.write("\rRead all %i sequences\tFound %i unique sequences\n" %(i, len(ids)))
+            sys.stdout.write("\rRead all {:,} sequences\tFound {:,} unique sequences\n"
+                .format(i, len(ids)))
     return ids
 
 def cut_runts(ids):
@@ -71,12 +72,12 @@ def cut_runts(ids):
             cr += len(ids[barcode])
         k += 1
         if time.time() - start > 1 and args.verbose:
-            sys.stdout.write("\rKept: %i barcodes\tCut: %i" %(k, c))
+            sys.stdout.write("\rKept: {:,}\tCut: {:,}".format(k, c))
             sys.stdout.flush()
             start = time.time()
     if args.verbose:
-        sys.stdout.write("\rKept: %i barcodes\tCut all %i barcodes smaller than %i (%i sequences)\n"
-            %(k, c, args.cutreads, cr))
+        sys.stdout.write("\rKept {:,} barcodes, Cut all {:,} barcodes smaller than {:,} ({:,} sequences)\n"
+            .format(k, c, args.cutreads, cr))
     return g, b
 
 #takes set of barcodes, outputs array of string array of clusters
@@ -100,11 +101,11 @@ def cluster(barcodes):
         clusters.append(c)
         i += 1
         if time.time() - start > 1 and args.verbose:
-            sys.stdout.write("\rGrouped %i clusters" %i)
+            sys.stdout.write("\rGrouped {:,} clusters".format(i))
             sys.stdout.flush()
             start = time.time()
     if args.verbose:
-        sys.stdout.write("\rGrouped %i clusters\n" %i)
+        sys.stdout.write("\rGrouped {:,} clusters\n".format(i))
     return clusters
 
 #takes an array of string array of clusters, and dictionary of unique barcode
@@ -137,11 +138,11 @@ def center(clusters, ids):
         centers.append(center)
         t += 1
         if time.time() - start > 1 and args.verbose:
-            sys.stdout.write("\rCentr'd %i clusters" %t)
+            sys.stdout.write("\rCentr'd {:,} clusters".format(t))
             sys.stdout.flush()
             start = time.time()
     if args.verbose:
-        sys.stdout.write("\rCentered all %i clusters\n" %t)
+        sys.stdout.write("\rCentered all {:,} clusters\n".format(t))
     return centers
 
 def make_cids(clusters, centers, ids):
@@ -156,11 +157,11 @@ def make_cids(clusters, centers, ids):
             i += len(ids[barcode])
         c += 1
         if time.time() - start > 1 and args.verbose:
-            sys.stdout.write("\rGrouped %i ids into %i centers" %(i, c))
+            sys.stdout.write("\rGrouped {:,} ids into {:,} centers".format(i, c))
             sys.stdout.flush()
             start = time.time()
     if args.verbose:
-        sys.stdout.write("\rGrouped all %i ids into %i centers\n" %(i, c))
+        sys.stdout.write("\rGrouped all {:,} ids into {:,} centers\n".format(i, c))
     return cids
 
 def print_cids(cids, f):
@@ -174,11 +175,11 @@ def print_cids(cids, f):
             o.write("\n>%s\n%s" %(t1, t2))
             i += 1
             if time.time() - start > 1 and args.verbose:
-                sys.stdout.write("\rWrote %i entries to %s" %(i, f))
+                sys.stdout.write("\rWrote {:,} entries to {}".format(i, f))
                 sys.stdout.flush()
                 start = time.time()
     if args.verbose:
-        sys.stdout.write("\rWrote all %i entries to %s\n" %(i, f))
+        sys.stdout.write("\rWrote all {:,} entries to {}\n".format(i, f))
 
 #takes barcode, outputs set of all 1 off barcodes
 #{'a', 'b', 'c'}, no repeats
@@ -211,11 +212,11 @@ def minDistHist(centers):
         m.append(mhd)
         t += 1
         if time.time() - start > 1 and args.verbose:
-            sys.stdout.write("\rFound Min Hamming Distance for %i centers" %t)
+            sys.stdout.write("\rFound Min Hamming Distance for {:,} centers".format(t))
             sys.stdout.flush()
             start = time.time()
     if args.verbose:
-        sys.stdout.write("\rFound All Min Hamming Distance for %i centers\n" %t)
+        sys.stdout.write("\rFound All Min Hamming Distance for {:,} centers\n".format(t))
 
     p = PdfPages(args.out.split('.')[0] + "_mhd.pdf")
     plot = plt.figure()
@@ -241,22 +242,22 @@ def jackpottogram(cids):
     other = 0
     o = 0
     for rest in range(len(n)):
-        per = 100 * (n[rest] / float(total))
+        per = n[rest] / float(total)
         if per > float(even)/2 or rest < 7:
             slices.append(per)
-            labels.append('%.3f%% (%i reads)' %(per, n[rest]))
+            labels.append('{:.3%} ({:,} reads)'.format(per, n[rest]))
         elif n[rest] == 1:
             break
         else:
             other += n[rest]
             o += 1
-    per = 100 * (other / float(total))
+    per = other / float(total)
     slices.append(per)
-    labels.append('Other %i Clusters:\n%.3f%% (%i reads)' %(o, per, other))
+    labels.append('Other {:,} Clusters:\n{:.3%} ({:,} reads)'.format(o, per, other))
     if rest + 1 != len(n):
-        ones = 100 * ((len(n)-rest)/float(total))
+        ones = (len(n)-rest)/float(total)
         slices.append(ones)
-        labels.append("1's: %.3f%%" %ones)
+        labels.append("1's: {:.3%}".format(ones))
 
     color = cm.Pastel2(np.linspace(0.,1.,len(slices)))
 
@@ -266,7 +267,7 @@ def jackpottogram(cids):
         handle.set_linewidth(.05)
     plt.legend(handles, labels, title = "Largest Clusters", loc="upper right", prop={'size':8})
     plt.axis('equal')
-    plt.title('Reads per Cluster by Percentage\nCut Barcodes <= %i' %args.cutreads)
+    plt.title('Reads per Cluster by Percentage\nCut Barcodes <= {:,}'.format(args.cutreads))
     p = PdfPages(args.out.split('.')[0] + "_jkp.pdf")
     p.savefig(plot)
     p.close()
@@ -306,7 +307,7 @@ def rpc(cids):
         fhist = plt.figure()
         plt.title("Reads per Cluster w/o Outliers")
         plt.tick_params(axis = "both", labelsize = 8)
-        plt.xlabel("Cluster Size in Reads between %i and %i"%(f[0], f[-1]))
+        plt.xlabel("Cluster Size in Reads between {:,} and {:,}".format(f[0], f[-1]))
         plt.ylabel("Clusters")
         plt.hist(f, 51, color = 'blue', alpha = .6)
 
@@ -321,7 +322,7 @@ def rpc(cids):
         plt.legend(handles, labels[::-1], title = "Cluster Sizes", loc="upper right", 
             prop={'size':8})
         plt.axis('equal')
-        plt.title('Number of Clusters at each Size between %i and %i' %(f[0], f[-1]))
+        plt.title('Number of Clusters at each Size between {:,} and {:,}'.format(f[0], f[-1]))
 
     p = PdfPages(args.out.split('.')[0] + "_rpc.pdf")
     p.savefig(hist)
@@ -349,12 +350,12 @@ def pie_prep(n):
     for cl in n:
         if cl > grp * slc:
             slices.append(count)
-            labels.append("%i - %i reads: %i" %(grp * (slc-1), grp * slc, count))
+            labels.append("{:,} - {:,} reads: {:,}".format(grp * (slc-1), grp * slc, count))
             count = 0
             slc += 1
         count += 1
     slices.append(count)
-    labels.append("%i - %i reads: %i" %(grp * (slc-1), n[-1], count))
+    labels.append("{:,} - {:,} reads: {:,}".format(grp * (slc-1), n[-1], count))
     return slices, labels
 
 #ripped from https://github.com/lh3/readfq
