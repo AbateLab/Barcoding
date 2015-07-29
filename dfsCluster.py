@@ -71,11 +71,11 @@ def cut_runts(ids):
             cr += len(ids[barcode])
         k += 1
         if time.time() - start > 1 and args.verbose:
-            sys.stdout.write("\rKept: %i\tCut: %i" %(k, c))
+            sys.stdout.write("\rKept: %i barcodes\tCut: %i" %(k, c))
             sys.stdout.flush()
             start = time.time()
     if args.verbose:
-        sys.stdout.write("\rKept: %i\tCut all %i barcodes smaller than %i (%i sequences)\n"
+        sys.stdout.write("\rKept: %i barcodes\tCut all %i barcodes smaller than %i (%i sequences)\n"
             %(k, c, args.cutreads, cr))
     return g, b
 
