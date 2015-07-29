@@ -13,7 +13,7 @@ def main():
     ccounts = initialize(args.len, args.num)
     if args.graph:
         minDistHist(ccounts.keys())
-    pcr(ccounts, args.cyc)
+    ccounts = pcr(ccounts, args.cyc)
     ccounts = sample(ccounts, args.sample)
     cids = ccounts2cids(ccounts)
     cids2fasta(cids, args.out+".fasta")
@@ -47,6 +47,7 @@ def pcr(ccounts, cycles):
     j = 0
     for i in range(cycles):
         ccounts, t, u, j = stats_cyc(ccounts, args.err, args.cpr, i+1, t, u, j, l)
+    return ccounts
 
 def stats_cyc(ccounts, er, cr, cyc, t, u, j, l):
     c = ccounts.copy()
