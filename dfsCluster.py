@@ -24,13 +24,15 @@ def main():
     ids = make_ids(args.i)
     good, bad = cut_runts(ids)
     clusters = cluster(set(good.keys()))
+    if args.cutcollisions:
+        clusters = cutcol(clusters, good)
     centers = center(clusters, good)
     cids = make_cids(clusters, centers, good)
     if args.graph:
         jackpottogram(cids)
-        #rpc(cids)
-        #minDistHist(centers)
-    #print_cids(cids, args.out+".cid")
+        rpc(cids)
+        minDistHist(centers)
+    print_cids(cids, args.out+".cid")
 
 #reads fasta/q file to get set of barcodes to cluster
 #barcodes: {'a', 'b', 'c'}, no repeats
@@ -144,6 +146,21 @@ def center(clusters, ids):
     if args.verbose:
         sys.stdout.write("\rCentered all {:,} clusters\n".format(t))
     return centers
+
+def cutcol(clusters, ids):
+    singles = []
+    for cluster in clusters:
+        top, sec, tot = 0, 0, 0
+        for barcode in cluster:
+            idc = len(ids[barcode])
+            tot += idc
+            if idc > top:
+                sec, top = top, idc
+            elif idc > sec:
+                sec = idc
+        if float(top - sec) / tot < .72:
+            singles.append(cluster)
+    return singles
 
 def make_cids(clusters, centers, ids):
     cids = {}
